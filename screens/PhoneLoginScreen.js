@@ -10,9 +10,11 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 const PhoneLoginScreen = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
+  const navigation = useNavigation();
 
   return (
     <KeyboardAvoidingView
@@ -47,7 +49,7 @@ const PhoneLoginScreen = () => {
             <TouchableOpacity
               style={styles.button}
               onPress={() => {
-                /* Xử lý khi nhấn nút tiếp tục */
+                navigation.navigate("Home"); // Navigate to HomeScreen
               }}
             >
               <Text style={styles.buttonText}>Tiếp tục</Text>
