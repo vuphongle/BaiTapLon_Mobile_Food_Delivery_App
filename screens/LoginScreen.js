@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'; // Import điều hướng
+import { useNavigation } from '@react-navigation/native';
 
 const LoginScreen = () => {
-  const navigation = useNavigation(); // Sử dụng hook điều hướng
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
       <View style={styles.topContainer}>
-        <Text style={styles.title}>Grab</Text>
+        <Text style={styles.title}>P&T</Text>
         <Text style={styles.subtitle}>Siêu ứng dụng đáp ứng mọi nhu cầu hàng ngày</Text>
       </View>
 
@@ -37,7 +37,7 @@ const LoginScreen = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('PhoneLogin')}  // Điều hướng tới màn hình PhoneLogin
+          onPress={() => navigation.navigate('PhoneLogin')}
         >
           <FontAwesome name="phone" size={24} color="black" style={styles.icon} />
           <Text style={styles.buttonText}>Tiếp tục với số điện thoại</Text>
@@ -50,13 +50,13 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#00b140',
+    backgroundColor: '#43bed8',
     justifyContent: 'space-between',
   },
   topContainer: {
     justifyContent: 'flex-start',
     alignItems: 'center',
-    marginTop: 60,
+    marginTop: 120,
   },
   bottomContainer: {
     justifyContent: 'center',
@@ -64,16 +64,17 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   title: {
-    fontSize: 40,
+    fontSize: 80,
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 10,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 20,
     color: 'white',
     marginBottom: 40,
     textAlign: 'center',
+    width: '60%',
   },
   button: {
     flexDirection: 'row',
@@ -107,6 +108,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     flex: 1,
     marginHorizontal: 10,
+    marginLeft: 20,
+    marginRight: 20,
   },
   orText: {
     color: 'white',
