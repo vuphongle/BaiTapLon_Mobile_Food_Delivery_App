@@ -1,22 +1,118 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 
 const PhoneLoginScreen = () => {
+  const [phoneNumber, setPhoneNumber] = useState("");
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Màn hình đăng nhập bằng số điện thoại</Text>
-    </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.inner}>
+          {/* Phần hiển thị "Bắt đầu" ở giữa màn hình */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerText}>Bắt đầu</Text>
+          </View>
+
+          {/* Phần nhập số điện thoại */}
+          <View style={styles.formContainer}>
+            <Text style={styles.label}>Số Di động</Text>
+            <View style={styles.inputContainer}>
+              <Text style={styles.countryCode}>+84</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="99 123 4567"
+                keyboardType="numeric"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+              />
+            </View>
+          </View>
+
+          {/* Nút "Tiếp tục" */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                /* Xử lý khi nhấn nút tiếp tục */
+              }}
+            >
+              <Text style={styles.buttonText}>Tiếp tục</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  text: {
+  inner: {
+    flex: 1,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+  },
+  headerContainer: {
+    alignItems: "center",
+    marginTop: 100,
+  },
+  headerText: {
+    fontSize: 40,
+    fontWeight: "bold",
+  },
+  formContainer: {
+    marginLeft: 20,
+    marginRight: 20,
+    marginBottom: 200,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    paddingBottom: 5,
+  },
+  countryCode: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+  input: {
+    fontSize: 18,
+    flex: 1,
+  },
+  buttonContainer: {
+    marginBottom: 30,
+  },
+  button: {
+    backgroundColor: "#00b140",
+    paddingVertical: 15,
+    borderRadius: 30,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
     fontSize: 20,
+    fontWeight: "bold",
   },
 });
 
