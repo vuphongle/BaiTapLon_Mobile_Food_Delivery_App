@@ -1,3 +1,4 @@
+// PhoneLoginScreen.js
 import React, { useState } from "react";
 import {
   View,
@@ -49,7 +50,7 @@ const PhoneLoginScreen = () => {
             <TouchableOpacity
               style={styles.button}
               onPress={() => {
-                navigation.navigate("Home"); // Navigate to HomeScreen
+                navigation.replace("MainTabs"); // Sử dụng replace để tránh quay lại màn hình đăng nhập
               }}
             >
               <Text style={styles.buttonText}>Tiếp tục</Text>
