@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 const FavoritesSceen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Đây là màn hình My Order</Text>
+      <Text style={styles.text}>Đây là màn hình FavoritesSceen</Text>
     </View>
   );
 };
