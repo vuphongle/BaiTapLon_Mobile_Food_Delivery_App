@@ -1,3 +1,4 @@
+// screens/HomeScreen.js
 import React from 'react';
 import {
   View,
@@ -7,12 +8,14 @@ import {
   ScrollView,
   Image,
   Dimensions,
+  Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomHeader from '../components/CustomHeader';
 
 const { width } = Dimensions.get('window');
 
+// Dữ liệu cho banners, categories, collections, recommendedItems, saleItems
 const banners = [
   {
     id: '1',
@@ -32,7 +35,7 @@ const banners = [
 ];
 
 const categories = [
-  { id: '1', name: 'Rice', icon: 'nutrition-outline' }, // rice-outline không có nên thay thế bằng icon khác
+  { id: '1', name: 'Rice', icon: 'nutrition-outline' }, // nutrition-outline thay thế rice-outline
   { id: '2', name: 'Healthy', icon: 'leaf-outline' },
   { id: '3', name: 'Drink', icon: 'wine-outline' },
   { id: '4', name: 'Fastfood', icon: 'pizza-outline' },
@@ -49,17 +52,88 @@ const collections = [
   { id: '6', name: 'BEST SELLER', image: 'https://via.placeholder.com/80/800080/FFFFFF?text=BS' },
 ];
 
-const HomeScreen = ({ navigation }) => {
-  // **Helper function để chia mảng collections thành các nhóm có tối đa 2 mục**
-  const chunkArray = (array, size) => {
-    const result = [];
-    for (let i = 0; i < array.length; i += size) {
-      result.push(array.slice(i, i + size));
-    }
-    return result;
-  };
+const recommendedItems = [
+  {
+    id: '1',
+    title: 'Restaurant 1',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.5 • 30-40 mins',
+  },
+  {
+    id: '2',
+    title: 'Restaurant 2',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.5 • 30-40 mins',
+  },
+  {
+    id: '3',
+    title: 'Restaurant 3',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.5 • 30-40 mins',
+  },
+  {
+    id: '4',
+    title: 'Restaurant 4',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.5 • 30-40 mins',
+  },
+  {
+    id: '5',
+    title: 'Restaurant 5',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.5 • 30-40 mins',
+  },
+];
 
+const saleItems = [
+  {
+    id: '1',
+    title: '50% OFF',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.0',
+  },
+  {
+    id: '2',
+    title: '50% OFF',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.0',
+  },
+  {
+    id: '3',
+    title: '50% OFF',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.0',
+  },
+  {
+    id: '4',
+    title: '50% OFF',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.0',
+  },
+  {
+    id: '5',
+    title: '50% OFF',
+    image: 'https://via.placeholder.com/100',
+    rating: '⭐ 4.0',
+  },
+];
+
+// Helper function để chia mảng collections thành các nhóm có tối đa 2 mục
+const chunkArray = (array, size) => {
+  const result = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+};
+
+const HomeScreen = ({ navigation }) => {
   const collectionChunks = chunkArray(collections, 2); // Mỗi nhóm có tối đa 2 mục
+
+  // Hàm xử lý khi nhấn vào mục trong Recommended hoặc Sale
+  const handleItemPress = (title) => {
+    Alert.alert('Thông báo', `Bạn đã nhấn vào: ${title}`);
+  };
 
   return (
     <View style={styles.container}>
@@ -88,7 +162,7 @@ const HomeScreen = ({ navigation }) => {
               {/* Nút "SEE MORE" đặt ở góc dưới bên trái */}
               <TouchableOpacity
                 style={styles.seeMoreButton}
-                onPress={() => alert('See More')}
+                onPress={() => handleItemPress('See More')}
               >
                 <Text style={styles.seeMoreText}>SEE MORE</Text>
               </TouchableOpacity>
@@ -111,7 +185,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         {/* Voucher */}
-        <TouchableOpacity style={styles.voucherContainer} onPress={() => alert('Xem voucher')}>
+        <TouchableOpacity style={styles.voucherContainer} onPress={() => handleItemPress('Voucher')}>
           <View style={styles.voucherContent}>
             <Ionicons name="ticket-outline" size={30} color="#6200ee" style={styles.voucherIcon} />
             <View>
@@ -126,7 +200,7 @@ const HomeScreen = ({ navigation }) => {
           {/* Header Collections */}
           <View style={styles.collectionsHeader}>
             <Text style={styles.sectionTitle}>Collections</Text>
-            <TouchableOpacity onPress={() => alert('View all Collections')}>
+            <TouchableOpacity onPress={() => handleItemPress('View all Collections')}>
               <Text style={styles.viewAllText}>View all</Text>
             </TouchableOpacity>
           </View>
@@ -138,7 +212,7 @@ const HomeScreen = ({ navigation }) => {
                   <TouchableOpacity
                     key={item.id}
                     style={styles.collectionItem}
-                    onPress={() => alert(`Bộ sưu tập: ${item.name}`)}
+                    onPress={() => handleItemPress(`Bộ sưu tập: ${item.name}`)}
                   >
                     {/* Hình ảnh bên trái */}
                     <Image
@@ -157,48 +231,60 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Recommended for you */}
         <View style={styles.sectionContainer}>
+          {/* Header Section */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recommended for you</Text>
-            <TouchableOpacity onPress={() => alert('View all Recommended')}>
+            <TouchableOpacity onPress={() => handleItemPress('View all Recommended')}>
               <Text style={styles.viewAllText}>View all</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Recommended Items ScrollView */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {/* Thẻ nhà hàng */}
-            {Array.from({ length: 5 }).map((_, index) => (
-              <View key={index} style={styles.card}>
+            {recommendedItems.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                onPress={() => handleItemPress(item.title)}
+              >
                 <Image
-                  source={{ uri: 'https://via.placeholder.com/100' }}
+                  source={{ uri: item.image }}
                   style={styles.cardImage}
                   resizeMode="cover"
                 />
-                <Text style={styles.cardTitle}>Restaurant {index + 1}</Text>
-                <Text style={styles.cardRating}>⭐ 4.5 • 30-40 mins</Text>
-              </View>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardRating}>{item.rating}</Text>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
-        {/* Giảm Giá */}
+        {/* Sale up to 50% */}
         <View style={styles.sectionContainer}>
+          {/* Header Section */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Sale up to 50%</Text>
-            <TouchableOpacity onPress={() => alert('View all Sales')}>
+            <TouchableOpacity onPress={() => handleItemPress('View all Sales')}>
               <Text style={styles.viewAllText}>View all</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Sale Items ScrollView */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {/* Mặt hàng giảm giá */}
-            {Array.from({ length: 5 }).map((_, index) => (
-              <View key={index} style={styles.saleCard}>
+            {saleItems.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.saleCard}
+                onPress={() => handleItemPress(item.title)}
+              >
                 <Image
-                  source={{ uri: 'https://via.placeholder.com/100' }}
+                  source={{ uri: item.image }}
                   style={styles.saleImage}
                   resizeMode="cover"
                 />
-                <Text style={styles.saleText}>50% OFF</Text>
-                <Text style={styles.saleRating}>⭐ 4.0</Text>
-              </View>
+                <Text style={styles.saleText}>{item.title}</Text>
+                <Text style={styles.saleRating}>{item.rating}</Text>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
@@ -217,10 +303,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 16,
   },
-  // Custom Header đã được chuyển sang component riêng
-
-  // Header Search Container styles moved to CustomHeader.js
-
   // Banner sử dụng ScrollView ngang
   bannerList: {
     marginBottom: 20,
