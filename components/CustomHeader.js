@@ -23,7 +23,7 @@ const CustomHeader = ({ navigation }) => {
       </View>
       {/* Ô tìm kiếm */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={20} color="#999" style={styles.searchIcon} />
+        <Ionicons name="search-outline" size={20} color="#999" style={styles.searchIcon} onPress={() => alert('Click vào icon-search')}/>
         <TextInput
           style={styles.searchInput}
           placeholder="Tìm kiếm..."
