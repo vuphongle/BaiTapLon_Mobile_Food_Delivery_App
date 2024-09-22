@@ -8,8 +8,38 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Dimensions,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
+const { width } = Dimensions.get('window');
+
+const banners = [
+  {
+    id: '1',
+    title: 'Join Party $1',
+    image: 'https://via.placeholder.com/350x150',
+  },
+  {
+    id: '2',
+    title: 'Special Offer',
+    image: 'https://via.placeholder.com/350x150/ff7f7f',
+  },
+  {
+    id: '3',
+    title: 'New Arrivals',
+    image: 'https://via.placeholder.com/350x150/87cefa',
+  },
+];
+
+const categories = [
+  { id: '1', name: 'Rice', icon: 'rice-outline' },
+  { id: '2', name: 'Healthy', icon: 'leaf-outline' },
+  { id: '3', name: 'Drink', icon: 'wine-outline' },
+  { id: '4', name: 'Fastfood', icon: 'pizza-outline' },
+  { id: '5', name: 'Dessert', icon: 'ice-cream-outline' },
+  { id: '6', name: 'Snack', icon: 'nutrition-outline' },
+];
 
 const HomeScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
@@ -22,8 +52,8 @@ const HomeScreen = ({ navigation }) => {
         <TouchableOpacity
           style={{ marginRight: 15 }}
           onPress={() => {
-            // Xử lý khi nhấn vào biểu tượng tìm kiếm
-            alert('Nhấn vào tìm kiếm');
+            // Xử lý khi nhấn vào biểu tượng tìm kiếm trong Header
+            alert('Nhấn vào tìm kiếm trong Header');
           }}
         >
           <Ionicons name="search-outline" size={25} color="#000" />
@@ -43,40 +73,59 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Thanh tìm kiếm */}
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Tìm kiếm..."
-        value={searchText}
-        onChangeText={(text) => setSearchText(text)}
-        onSubmitEditing={() => {
-          // Xử lý khi người dùng nhấn Enter trên bàn phím
-          alert(`Bạn đã tìm kiếm: ${searchText}`);
-        }}
-      />
-
-      {/* Banner */}
-      <View style={styles.banner}>
-        <Image
-          source={{ uri: 'https://via.placeholder.com/350x150' }}
-          style={styles.bannerImage}
-          resizeMode="cover"
+      {/* Thanh tìm kiếm với biểu tượng bên trái */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search-outline" size={20} color="#ccc" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Tìm kiếm..."
+          value={searchText}
+          onChangeText={(text) => setSearchText(text)}
+          onSubmitEditing={() => {
+            // Xử lý khi người dùng nhấn Enter trên bàn phím
+            alert(`Bạn đã tìm kiếm: ${searchText}`);
+          }}
         />
-        <View style={styles.bannerTextContainer}>
-          <Text style={styles.bannerText}>Join Party $1</Text>
-          <TouchableOpacity style={styles.seeMoreButton} onPress={() => alert('See More')}>
-            <Text style={styles.seeMoreText}>SEE MORE</Text>
-          </TouchableOpacity>
-        </View>
       </View>
+
+      {/* Banner sử dụng ScrollView ngang */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        pagingEnabled
+        style={styles.bannerList}
+      >
+        {banners.map((item) => (
+          <View key={item.id} style={styles.bannerItem}>
+            <Image
+              source={{ uri: item.image }}
+              style={styles.bannerImage}
+              resizeMode="cover"
+            />
+            {/* Container chứa văn bản trên banner */}
+            <View style={styles.bannerTextContainer}>
+              <Text style={styles.bannerText}>{item.title}</Text>
+            </View>
+            {/* Nút "SEE MORE" đặt ở góc dưới bên trái */}
+            <TouchableOpacity
+              style={styles.seeMoreButton}
+              onPress={() => alert('See More')}
+            >
+              <Text style={styles.seeMoreText}>SEE MORE</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </ScrollView>
 
       {/* Danh mục Icon */}
       <View style={styles.categoryContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {['Rice', 'Healthy', 'Drink', 'Fastfood', 'Dessert', 'Snack'].map((item, index) => (
-            <View key={index} style={styles.categoryItem}>
-              <Ionicons name="restaurant-outline" size={30} color="#e91e63" />
-              <Text style={styles.categoryText}>{item}</Text>
+          {categories.map((category) => (
+            <View key={category.id} style={styles.categoryItem}>
+              <View style={styles.categoryIconContainer}>
+                <Ionicons name={category.icon} size={30} color="#fff" />
+              </View>
+              <Text style={styles.categoryText}>{category.name}</Text>
             </View>
           ))}
         </ScrollView>
@@ -161,17 +210,32 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f8f8f8',
   },
-  searchBar: {
+  // Thanh tìm kiếm với biểu tượng bên trái
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 8,
     height: 40,
+    paddingHorizontal: 10,
+    marginBottom: 20,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingLeft: 10,
-    marginBottom: 20,
-    backgroundColor: '#fff',
   },
-  banner: {
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchBar: {
+    flex: 1,
+    height: '100%',
+  },
+  // Banner sử dụng ScrollView ngang
+  bannerList: {
     marginBottom: 20,
+  },
+  bannerItem: {
+    width: width - 32, // Full width minus padding (16 * 2)
+    marginRight: 16,
     position: 'relative',
   },
   bannerImage: {
@@ -179,6 +243,7 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 8,
   },
+  // Container chứa văn bản trên banner
   bannerTextContainer: {
     position: 'absolute',
     top: 20,
@@ -193,7 +258,11 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 5,
   },
+  // Nút "SEE MORE" đặt ở góc dưới bên trái của banner
   seeMoreButton: {
+    position: 'absolute',
+    bottom: 10, // Đặt ở phía dưới cùng
+    left: 20, // Đặt ở góc trái
     backgroundColor: '#e91e63',
     paddingVertical: 5,
     paddingHorizontal: 10,
@@ -203,19 +272,38 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  // Danh mục Icon
   categoryContainer: {
     marginBottom: 20,
   },
   categoryItem: {
     alignItems: 'center',
     marginRight: 15,
+    width: 80, // Tăng kích thước để chứa hình tròn
+  },
+  // Hình tròn chứa icon hoặc hình ảnh
+  categoryIconContainer: {
     width: 60,
+    height: 60,
+    borderRadius: 30, // Bán kính bằng nửa chiều rộng/chiều cao để tạo hình tròn
+    backgroundColor: '#e91e63', // Màu nền cho hình tròn, bạn có thể thay đổi
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 5,
+  },
+  // Nếu sử dụng hình ảnh thay vì icon
+  categoryImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30, // Tạo hình tròn
+    backgroundColor: '#e91e63', // Màu nền (nếu hình ảnh chưa tải)
+    marginBottom: 5,
   },
   categoryText: {
-    marginTop: 5,
     fontSize: 14,
     textAlign: 'center',
   },
+  // Voucher
   voucherContainer: {
     backgroundColor: '#fff',
     padding: 15,
@@ -231,6 +319,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  // Collections
   collectionsContainer: {
     marginBottom: 20,
   },
@@ -245,6 +334,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  // Các phần khác như Recommended và Sale
   sectionContainer: {
     marginBottom: 20,
   },
