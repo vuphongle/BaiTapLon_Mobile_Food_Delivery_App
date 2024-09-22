@@ -8,7 +8,7 @@ import {
   ScrollView,
   Image,
   Dimensions,
-  Alert,
+  Alert, // Đảm bảo đã import Alert
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomHeader from '../components/CustomHeader';
@@ -130,7 +130,7 @@ const chunkArray = (array, size) => {
 const HomeScreen = ({ navigation }) => {
   const collectionChunks = chunkArray(collections, 2); // Mỗi nhóm có tối đa 2 mục
 
-  // Hàm xử lý khi nhấn vào mục trong Recommended hoặc Sale
+  // Hàm xử lý khi nhấn vào mục trong Categories, Recommended hoặc Sale
   const handleItemPress = (title) => {
     Alert.alert('Thông báo', `Bạn đã nhấn vào: ${title}`);
   };
@@ -174,12 +174,16 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.categoryContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {categories.map((category) => (
-              <View key={category.id} style={styles.categoryItem}>
+              <TouchableOpacity
+                key={category.id}
+                style={styles.categoryItem}
+                onPress={() => handleItemPress(category.name)}
+              >
                 <View style={styles.categoryIconContainer}>
                   <Ionicons name={category.icon} size={30} color="#fff" />
                 </View>
                 <Text style={styles.categoryText}>{category.name}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
