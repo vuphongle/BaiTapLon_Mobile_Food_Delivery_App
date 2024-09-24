@@ -4,12 +4,11 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./screens/LoginScreen";
 import PhoneLoginScreen from "./screens/PhoneLoginScreen";
-import HomeScreen from "./screens/HomeScreen";
 import MyOrderScreen from "./screens/MyOrderScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
 import InboxScreen from "./screens/InboxScreen";
 import AccountScreen from "./screens/AccountScreen";
-import FastFoodScreen from "./screens/FastFoodScreen"; 
+import HomeStack from "./navigation/HomeStack"; // Import HomeStack
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -48,12 +47,12 @@ const MainTabs = () => {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "#e91e63",
+        tabBarActiveTintColor: "#3396aa",
         tabBarInactiveTintColor: "gray",
         headerShown: false, // Ẩn header của từng tab
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="MyOrder" component={MyOrderScreen} options={{ title: "My Order" }} />
       <Tab.Screen name="Favorites" component={FavoritesScreen} />
       <Tab.Screen name="Inbox" component={InboxScreen} />
@@ -80,11 +79,6 @@ export default function App() {
           name="MainTabs"
           component={MainTabs}
           options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="FastFood"
-          component={FastFoodScreen}
-          options={{ title: "Fastfood", headerShown: false }} 
         />
       </Stack.Navigator>
     </NavigationContainer>
