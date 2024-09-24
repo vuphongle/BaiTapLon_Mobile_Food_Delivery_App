@@ -4,6 +4,7 @@ import {
   View,
   Text,
   StyleSheet,
+  TextInput,
   TouchableOpacity,
   FlatList,
   Image,
@@ -77,6 +78,71 @@ const restaurants = [
   // Thêm các nhà hàng khác tại đây
 ];
 
+// Dữ liệu mẫu cho nhà hàng được đề xuất
+const recommendedRestaurants = [
+  {
+    id: "5",
+    type: "restaurant",
+    name: "Sushi World",
+    image: "https://via.placeholder.com/100",
+    deliveryTime: "18 mins",
+    rating: 4.9,
+    freeship: true,
+    nearYou: true,
+    dishes: [
+      { name: "California Roll", price: "$8.99" },
+      { name: "Spicy Tuna Roll", price: "$9.99" },
+      { name: "Salmon Nigiri", price: "$7.99" },
+    ],
+  },
+  {
+    id: "6",
+    type: "restaurant",
+    name: "Taco Fiesta",
+    image: "https://via.placeholder.com/100",
+    deliveryTime: "12 mins",
+    rating: 4.6,
+    freeship: false,
+    nearYou: true,
+    dishes: [
+      { name: "Beef Taco", price: "$3.99" },
+      { name: "Chicken Taco", price: "$3.49" },
+      { name: "Veggie Taco", price: "$3.29" },
+    ],
+  },
+  {
+    id: "7",
+    type: "restaurant",
+    name: "Pasta Paradise",
+    image: "https://via.placeholder.com/100",
+    deliveryTime: "22 mins",
+    rating: 4.7,
+    freeship: true,
+    nearYou: false,
+    dishes: [
+      { name: "Spaghetti Bolognese", price: "$11.99" },
+      { name: "Fettuccine Alfredo", price: "$10.99" },
+      { name: "Penne Arrabiata", price: "$9.99" },
+    ],
+  },
+  {
+    id: "8",
+    type: "restaurant",
+    name: "Noodle House",
+    image: "https://via.placeholder.com/100",
+    deliveryTime: "16 mins",
+    rating: 4.5,
+    freeship: false,
+    nearYou: true,
+    dishes: [
+      { name: "Beef Noodle Soup", price: "$7.99" },
+      { name: "Chicken Lo Mein", price: "$8.49" },
+      { name: "Vegetable Udon", price: "$6.99" },
+    ],
+  },
+  // Thêm các nhà hàng được đề xuất khác tại đây
+];
+
 // Dữ liệu mẫu cho banner quảng cáo với title
 const banners = [
   {
@@ -96,39 +162,6 @@ const banners = [
   },
 ];
 
-// Dữ liệu mẫu cho phần Recommended
-const recommendations = [
-  {
-    id: "r1",
-    type: "restaurant",
-    name: "Sushi World",
-    image: "https://via.placeholder.com/100",
-    deliveryTime: "20 mins",
-    rating: 4.9,
-    freeship: true,
-    nearYou: true,
-    dishes: [
-      { name: "Salmon Sushi", price: "$12.99" },
-      { name: "Tuna Sushi", price: "$11.99" },
-    ],
-  },
-  {
-    id: "r2",
-    type: "restaurant",
-    name: "Pasta House",
-    image: "https://via.placeholder.com/100",
-    deliveryTime: "25 mins",
-    rating: 4.7,
-    freeship: false,
-    nearYou: false,
-    dishes: [
-      { name: "Spaghetti Bolognese", price: "$10.99" },
-      { name: "Fettuccine Alfredo", price: "$11.99" },
-    ],
-  },
-  // Thêm các đề xuất khác tại đây
-];
-
 // Ánh xạ các tùy chọn sắp xếp với màu sắc tương ứng
 const sortOptionColors = {
   "Price: Low to High": "#43bed8",
@@ -143,7 +176,16 @@ const FastFoodScreen = ({ navigation }) => {
   const [isSortOptionsVisible, setSortOptionsVisible] = useState(false);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
-  const bannerRef = useRef(null);
+  const viewabilityConfig = {
+    itemVisiblePercentThreshold: 50,
+  };
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const index = viewableItems[0].index;
+      setCurrentBannerIndex(index);
+    }
+  }).current;
 
   // Hàm xử lý khi nhấn vào một nhà hàng
   const handleRestaurantPress = (name) => {
@@ -189,19 +231,10 @@ const FastFoodScreen = ({ navigation }) => {
   // Kiểm tra xem có cần hiển thị nút "See All" không
   const shouldShowSeeAll = restaurants.length > 3;
 
-  // Hàm xử lý khi nhấn vào nút "See All" trong danh sách nhà hàng
+  // Hàm xử lý khi nhấn vào nút "See All" cho danh sách nhà hàng chính
   const handleSeeAllPress = () => {
     Alert.alert("See All", "Bạn đã bấm vào nút See All");
     // Thêm logic điều hướng hoặc hiển thị danh sách toàn bộ nhà hàng tại đây
-  };
-
-  // Hàm xử lý khi nhấn vào nút "See All" trong phần Recommended
-  const handleSeeAllRecommendedPress = () => {
-    Alert.alert(
-      "See All",
-      "Bạn đã bấm vào nút See All trong Recommended for you"
-    );
-    // Thêm logic điều hướng hoặc hiển thị danh sách toàn bộ đề xuất tại đây
   };
 
   // Thêm một mục "See All" vào danh sách nếu cần
@@ -209,77 +242,26 @@ const FastFoodScreen = ({ navigation }) => {
     ? [...displayedRestaurants, { id: "seeAll", type: "seeAll" }]
     : displayedRestaurants;
 
-  // Cấu hình viewability cho FlatList
-  const viewabilityConfig = {
-    itemVisiblePercentThreshold: 50,
-  };
+  // Giới hạn số lượng nhà hàng được đề xuất hiển thị lên đến 1
+  const displayedRecommended = recommendedRestaurants.slice(0, 1);
 
-  // Hàm xử lý thay đổi các mục hiển thị
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    if (viewableItems.length > 0) {
-      const index = viewableItems[0].index;
-      setCurrentBannerIndex(index);
-    }
-  }).current;
-
-  // Hàm render từng mục trong FlatList
-  const renderItem = ({ item }) => {
-    if (item.type === "seeAll") {
-      return (
-        <TouchableOpacity
-          style={styles.seeAllButton}
-          onPress={handleSeeAllPress}
-        >
-          <Text style={styles.seeAllText}>See All</Text>
-        </TouchableOpacity>
-      );
-    }
-
-    return (
+  // Hàm render từng mục trong FlatList cho Banner
+  const renderBannerItem = ({ item }) => (
+    <View style={styles.bannerCard}>
       <TouchableOpacity
-        style={styles.restaurantCard}
-        onPress={() => handleRestaurantPress(item.name)}
+        activeOpacity={0.8}
+        onPress={() =>
+          Alert.alert("Banner Clicked", `Bạn đã bấm vào Banner ${item.id}`)
+        }
       >
-        <Image source={{ uri: item.image }} style={styles.restaurantImage} />
-
-        <View style={styles.restaurantInfo}>
-          <Text style={styles.restaurantName}>{item.name}</Text>
-
-          <View style={styles.dishesContainer}>
-            {item.dishes.slice(0, 2).map((dish, index) => (
-              <Text key={index} style={styles.dishText}>
-                {dish.name} - {dish.price}
-              </Text>
-            ))}
-            {item.dishes.length > 2 && (
-              <Text style={styles.moreDishesText}>
-                +{item.dishes.length - 2} more
-              </Text>
-            )}
-          </View>
-
-          <View style={styles.restaurantDetails}>
-            <Text style={styles.restaurantDetailText}>{item.deliveryTime}</Text>
-            <Ionicons name="star" size={16} color="#f1c40f" />
-            <Text style={styles.restaurantDetailText}>{item.rating}</Text>
-          </View>
-
-          <View style={styles.chipsContainer}>
-            {item.freeship && (
-              <View style={styles.chip}>
-                <Text style={styles.chipText}>Freeship</Text>
-              </View>
-            )}
-            {item.nearYou && (
-              <View style={styles.chip}>
-                <Text style={styles.chipText}>Near You</Text>
-              </View>
-            )}
-          </View>
+        <Image source={{ uri: item.image }} style={styles.bannerImage} />
+        {/* Tiêu đề của banner */}
+        <View style={styles.bannerTitleContainer}>
+          <Text style={styles.bannerTitle}>{item.title}</Text>
         </View>
       </TouchableOpacity>
-    );
-  };
+    </View>
+  );
 
   // Hàm render BannerAd
   const renderBannerAd = () => (
@@ -295,25 +277,7 @@ const FastFoodScreen = ({ navigation }) => {
         decelerationRate="fast"
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        renderItem={({ item }) => (
-          <View style={styles.bannerCard}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() =>
-                Alert.alert(
-                  "Banner Clicked",
-                  `Bạn đã bấm vào Banner ${item.id}`
-                )
-              }
-            >
-              <Image source={{ uri: item.image }} style={styles.bannerImage} />
-              {/* Tiêu đề của banner */}
-              <View style={styles.bannerTitleContainer}>
-                <Text style={styles.bannerTitle}>{item.title}</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        )}
+        renderItem={renderBannerItem}
       />
       {/* Pagination Dots */}
       <View style={styles.paginationContainer}>
@@ -332,86 +296,56 @@ const FastFoodScreen = ({ navigation }) => {
     </View>
   );
 
-  // Component cho phần "Recommended for you"
-  const RecommendedSection = () => {
-    if (recommendations.length === 0) return null;
+  // Hàm xử lý khi nhấn vào nút "See All" cho Recommended
+  const handleSeeAllRecommendedPress = () => {
+    Alert.alert("See All", "Bạn đã bấm vào nút See All");
+    // Thêm logic điều hướng hoặc hiển thị danh sách toàn bộ nhà hàng được đề xuất tại đây
+  };
 
-    const firstRecommendation = recommendations[0];
+  // Hàm render từng mục trong FlatList cho Recommended Restaurants
+  const renderRecommendedItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.restaurantCard}
+      onPress={() => handleRestaurantPress(item.name)}
+    >
+      <Image source={{ uri: item.image }} style={styles.restaurantImage} />
 
-    return (
-      <View style={styles.recommendedContainer}>
-        {/* Header của phần Recommended */}
-        <View style={styles.recommendedHeader}>
-          <Text style={styles.recommendedTitle}>Recommended for you</Text>
-          {recommendations.length > 1 && (
-            <TouchableOpacity onPress={handleSeeAllRecommendedPress}>
-              <Text style={styles.seeAllText}>See All</Text>
-            </TouchableOpacity>
+      <View style={styles.restaurantInfo}>
+        <Text style={styles.restaurantName}>{item.name}</Text>
+
+        <View style={styles.dishesContainer}>
+          {item.dishes.slice(0, 2).map((dish, index) => (
+            <Text key={index} style={styles.dishText}>
+              {dish.name} - {dish.price}
+            </Text>
+          ))}
+          {item.dishes.length > 2 && (
+            <Text style={styles.moreDishesText}>
+              +{item.dishes.length - 2} more
+            </Text>
           )}
         </View>
 
-        {/* Card của đề xuất đầu tiên */}
-        <TouchableOpacity
-          style={styles.recommendedCard}
-          onPress={() => handleRestaurantPress(firstRecommendation.name)}
-        >
-          <Image
-            source={{ uri: firstRecommendation.image }}
-            style={styles.restaurantImage}
-          />
+        <View style={styles.restaurantDetails}>
+          <Text style={styles.restaurantDetailText}>{item.deliveryTime}</Text>
+          <Ionicons name="star" size={16} color="#f1c40f" />
+          <Text style={styles.restaurantDetailText}>{item.rating}</Text>
+        </View>
 
-          <View style={styles.restaurantInfo}>
-            <Text style={styles.restaurantName}>
-              {firstRecommendation.name}
-            </Text>
-
-            <View style={styles.dishesContainer}>
-              {firstRecommendation.dishes.slice(0, 2).map((dish, index) => (
-                <Text key={index} style={styles.dishText}>
-                  {dish.name} - {dish.price}
-                </Text>
-              ))}
-              {firstRecommendation.dishes.length > 2 && (
-                <Text style={styles.moreDishesText}>
-                  +{firstRecommendation.dishes.length - 2} more
-                </Text>
-              )}
+        <View style={styles.chipsContainer}>
+          {item.freeship && (
+            <View style={styles.chip}>
+              <Text style={styles.chipText}>Freeship</Text>
             </View>
-
-            <View style={styles.restaurantDetails}>
-              <Text style={styles.restaurantDetailText}>
-                {firstRecommendation.deliveryTime}
-              </Text>
-              <Ionicons name="star" size={16} color="#f1c40f" />
-              <Text style={styles.restaurantDetailText}>
-                {firstRecommendation.rating}
-              </Text>
+          )}
+          {item.nearYou && (
+            <View style={styles.chip}>
+              <Text style={styles.chipText}>Near You</Text>
             </View>
-
-            <View style={styles.chipsContainer}>
-              {firstRecommendation.freeship && (
-                <View style={styles.chip}>
-                  <Text style={styles.chipText}>Freeship</Text>
-                </View>
-              )}
-              {firstRecommendation.nearYou && (
-                <View style={styles.chip}>
-                  <Text style={styles.chipText}>Near You</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </TouchableOpacity>
+          )}
+        </View>
       </View>
-    );
-  };
-
-  // Hàm render Footer bao gồm banner và Recommended
-  const renderFooter = () => (
-    <View>
-      {renderBannerAd()}
-      <RecommendedSection />
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -497,15 +431,97 @@ const FastFoodScreen = ({ navigation }) => {
         )}
       </View>
 
-      {/* Danh sách nhà hàng */}
-      <FlatList
-        data={dataToRender}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
+      {/* Danh sách nhà hàng và Banner */}
+      <ScrollView
         contentContainerStyle={styles.restaurantList}
         showsVerticalScrollIndicator={false}
-        ListFooterComponent={renderFooter} // Thêm BannerAd và Recommended ở cuối danh sách
-      />
+      >
+        {/* Danh sách nhà hàng */}
+        {dataToRender.map((item) => {
+          if (item.type === "seeAll") {
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.seeAllButton}
+                onPress={handleSeeAllPress}
+              >
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            );
+          }
+
+          return (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.restaurantCard}
+              onPress={() => handleRestaurantPress(item.name)}
+            >
+              <Image
+                source={{ uri: item.image }}
+                style={styles.restaurantImage}
+              />
+
+              <View style={styles.restaurantInfo}>
+                <Text style={styles.restaurantName}>{item.name}</Text>
+
+                <View style={styles.dishesContainer}>
+                  {item.dishes.slice(0, 2).map((dish, index) => (
+                    <Text key={index} style={styles.dishText}>
+                      {dish.name} - {dish.price}
+                    </Text>
+                  ))}
+                  {item.dishes.length > 2 && (
+                    <Text style={styles.moreDishesText}>
+                      +{item.dishes.length - 2} more
+                    </Text>
+                  )}
+                </View>
+
+                <View style={styles.restaurantDetails}>
+                  <Text style={styles.restaurantDetailText}>
+                    {item.deliveryTime}
+                  </Text>
+                  <Ionicons name="star" size={16} color="#f1c40f" />
+                  <Text style={styles.restaurantDetailText}>{item.rating}</Text>
+                </View>
+
+                <View style={styles.chipsContainer}>
+                  {item.freeship && (
+                    <View style={styles.chip}>
+                      <Text style={styles.chipText}>Freeship</Text>
+                    </View>
+                  )}
+                  {item.nearYou && (
+                    <View style={styles.chip}>
+                      <Text style={styles.chipText}>Near You</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Banner quảng cáo */}
+        {renderBannerAd()}
+
+        {/* Mục Recommended for you */}
+        <View style={styles.recommendedContainer}>
+          <View style={styles.recommendedHeader}>
+            <Text style={styles.recommendedTitle}>Recommended for you</Text>
+            <TouchableOpacity onPress={handleSeeAllRecommendedPress}>
+              <Text style={styles.recommendedSeeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={displayedRecommended}
+            keyExtractor={(item) => item.id}
+            renderItem={renderRecommendedItem}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -615,6 +631,7 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 5,
+    width: "100%",
   },
   restaurantImage: {
     width: 100,
@@ -728,25 +745,21 @@ const styles = StyleSheet.create({
   },
   recommendedContainer: {
     marginTop: 20,
+    paddingBottom: 20,
   },
   recommendedHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 20,
   },
   recommendedTitle: {
     fontSize: 18,
     fontWeight: "bold",
   },
-  recommendedCard: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    overflow: "hidden",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+  recommendedSeeAll: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#4b96a3",
   },
 });
