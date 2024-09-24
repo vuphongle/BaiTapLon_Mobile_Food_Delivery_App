@@ -9,6 +9,7 @@ import MyOrderScreen from "./screens/MyOrderScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
 import InboxScreen from "./screens/InboxScreen";
 import AccountScreen from "./screens/AccountScreen";
+import FastFoodScreen from "./screens/FastFoodScreen"; 
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -79,6 +80,11 @@ export default function App() {
           name="MainTabs"
           component={MainTabs}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="FastFood"
+          component={FastFoodScreen}
+          options={{ title: "Fastfood", headerShown: false }} 
         />
       </Stack.Navigator>
     </NavigationContainer>

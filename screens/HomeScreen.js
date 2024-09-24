@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomHeader from '../components/CustomHeader';
+import FastFoodScreen from './FastFoodScreen';
 
 const { width } = Dimensions.get('window');
 
@@ -132,7 +133,11 @@ const HomeScreen = ({ navigation }) => {
 
   // Hàm xử lý khi nhấn vào mục trong Categories, Recommended hoặc Sale
   const handleItemPress = (title) => {
-    Alert.alert('Thông báo', `Bạn đã nhấn vào: ${title}`);
+    if (title === 'Fastfood') {
+      navigation.navigate('FastFood'); // Điều hướng đến màn hình FastFood
+    } else {
+      Alert.alert('Thông báo', `Bạn đã nhấn vào: ${title}`);
+    }
   };
 
   return (
