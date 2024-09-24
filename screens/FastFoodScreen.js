@@ -4,7 +4,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   FlatList,
   Image,
@@ -139,25 +138,12 @@ const sortOptionColors = {
 };
 
 const FastFoodScreen = ({ navigation }) => {
-  const [searchText, setSearchText] = useState("");
   const [sortOption, setSortOption] = useState(null);
   const [filterOption, setFilterOption] = useState(null);
   const [isSortOptionsVisible, setSortOptionsVisible] = useState(false);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   const bannerRef = useRef(null);
-
-  // Hàm xử lý tìm kiếm
-  const handleSearch = () => {
-    Alert.alert("Tìm kiếm", `Bạn đã tìm kiếm: ${searchText}`);
-    // Thêm logic lọc danh sách nhà hàng tại đây
-  };
-
-  // Hàm xử lý lọc (nếu cần)
-  const handleFilter = () => {
-    Alert.alert("Lọc", "Chức năng lọc chưa được triển khai.");
-    // Thêm logic lọc danh sách nhà hàng tại đây
-  };
 
   // Hàm xử lý khi nhấn vào một nhà hàng
   const handleRestaurantPress = (name) => {
@@ -211,7 +197,10 @@ const FastFoodScreen = ({ navigation }) => {
 
   // Hàm xử lý khi nhấn vào nút "See All" trong phần Recommended
   const handleSeeAllRecommendedPress = () => {
-    Alert.alert("See All", "Bạn đã bấm vào nút See All trong Recommended for you");
+    Alert.alert(
+      "See All",
+      "Bạn đã bấm vào nút See All trong Recommended for you"
+    );
     // Thêm logic điều hướng hoặc hiển thị danh sách toàn bộ đề xuất tại đây
   };
 
@@ -232,14 +221,6 @@ const FastFoodScreen = ({ navigation }) => {
       setCurrentBannerIndex(index);
     }
   }).current;
-
-  // Hàm xử lý cuộn banner
-  const handleBannerScroll = ({ viewableItems }) => {
-    if (viewableItems.length > 0) {
-      const index = viewableItems[0].index;
-      setCurrentBannerIndex(index);
-    }
-  };
 
   // Hàm render từng mục trong FlatList
   const renderItem = ({ item }) => {
@@ -380,7 +361,9 @@ const FastFoodScreen = ({ navigation }) => {
           />
 
           <View style={styles.restaurantInfo}>
-            <Text style={styles.restaurantName}>{firstRecommendation.name}</Text>
+            <Text style={styles.restaurantName}>
+              {firstRecommendation.name}
+            </Text>
 
             <View style={styles.dishesContainer}>
               {firstRecommendation.dishes.slice(0, 2).map((dish, index) => (
@@ -433,31 +416,14 @@ const FastFoodScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Thanh tìm kiếm */}
-      <View style={styles.searchContainer}>
-        <Ionicons
-          name="search-outline"
-          size={20}
-          color="#999"
-          style={styles.searchIcon}
-        />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Tìm kiếm..."
-          placeholderTextColor="#999"
-          value={searchText}
-          onChangeText={setSearchText}
-          onSubmitEditing={handleSearch}
-        />
-        {searchText.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchText("")}>
-            <Ionicons name="close-circle" size={20} color="#999" />
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity onPress={handleFilter} style={styles.filterButton}>
-          <Ionicons name="filter-outline" size={20} color="#999" />
-        </TouchableOpacity>
-      </View>
+      {/* Nút Quay Lại */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="chevron-back" size={24} color="black" />
+        <Text style={styles.backButtonText}>Fast Food</Text>
+      </TouchableOpacity>
 
       {/* Tùy chọn sắp xếp và lọc */}
       <View style={styles.sortContainer}>
@@ -478,7 +444,7 @@ const FastFoodScreen = ({ navigation }) => {
                 sortOption ? { color: "#fff" } : styles.sortByTextDefault,
               ]}
             >
-              Sort by:
+              Sort by
             </Text>
             <Ionicons
               name={isSortOptionsVisible ? "chevron-up" : "chevron-down"}
@@ -551,33 +517,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8f8f8",
   },
-  searchContainer: {
+  backButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 25,
-    height: 40,
-    paddingHorizontal: 15,
-    margin: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     marginTop: 55,
+    gap: 20,
+    marginBottom: 20,
   },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#333",
-  },
-  filterButton: {
-    marginLeft: 10,
+  backButtonText: {
+    fontSize: 22,
+    color: "black",
   },
   sortContainer: {
     paddingHorizontal: 16,
     marginBottom: 10,
-    position: "relative", // Để dropdown nằm dưới
-    zIndex: 1, // Đặt zIndex cao hơn để đảm bảo dropdown nằm trên FlatList
-    overflow: "visible", // Đảm bảo dropdown không bị cắt
+    position: "relative",
+    zIndex: 1,
+    overflow: "visible",
   },
   sortByButtonDefault: {
     backgroundColor: "#e0e0e0",
@@ -585,17 +543,17 @@ const styles = StyleSheet.create({
   sortByButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#43bed8", // Màu nền thay đổi khi chọn sortOption
+    backgroundColor: "#43bed8",
     paddingVertical: 6,
-    paddingHorizontal: 12, // Đồng nhất với sortChip
+    paddingHorizontal: 12,
     borderRadius: 20,
     marginRight: 10,
-    height: 30, // Thêm chiều cao cố định
-    justifyContent: "center", // Căn giữa nội dung
+    height: 30,
+    justifyContent: "center",
   },
   sortByText: {
     fontSize: 14,
-    lineHeight: 16, // Thêm lineHeight để căn chỉnh
+    lineHeight: 16,
   },
   sortByTextDefault: {
     color: "#333",
@@ -607,8 +565,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0e0e0",
     marginRight: 10,
     marginBottom: 10,
-    height: 30, // Thêm chiều cao cố định
-    justifyContent: "center", // Căn giữa nội dung
+    height: 30,
+    justifyContent: "center",
   },
   sortChipSelected: {
     backgroundColor: "#43bed8",
@@ -616,24 +574,24 @@ const styles = StyleSheet.create({
   sortChipText: {
     color: "#333",
     fontSize: 14,
-    lineHeight: 16, // Thêm lineHeight để căn chỉnh
+    lineHeight: 16,
   },
   sortChipTextSelected: {
     color: "#fff",
   },
   sortOptionsContainer: {
     position: "absolute",
-    top: 40, // Vị trí ngay dưới sortContainer (sortByButton height + margin)
+    top: 40,
     left: 16,
     backgroundColor: "#fff",
     borderRadius: 8,
-    width: width - 32, // Điều chỉnh để khớp với padding của cha
+    width: width - 32,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
     paddingVertical: 10,
-    zIndex: 2, // Đặt zIndex cao hơn để dropdown nằm trên FlatList
+    zIndex: 2,
   },
   sortOption: {
     paddingVertical: 10,
@@ -666,7 +624,7 @@ const styles = StyleSheet.create({
   restaurantInfo: {
     flex: 1,
     padding: 10,
-    justifyContent: "space-between", // Đảm bảo các phần được phân bổ đều
+    justifyContent: "space-between",
   },
   restaurantName: {
     fontSize: 16,
@@ -709,18 +667,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   seeAllButton: {
-    width: "100%", // Chiếm toàn bộ chiều ngang
+    width: "100%",
     paddingVertical: 15,
     backgroundColor: "#cef9ff",
     borderRadius: 10,
     marginTop: 10,
-    marginBottom: 10, // Thêm marginBottom để cách nút với các thành phần khác
+    marginBottom: 10,
   },
   seeAllText: {
     color: "#4b96a3",
     fontSize: 16,
     fontWeight: "bold",
-    textAlign: "center", // Căn giữa văn bản
+    textAlign: "center",
   },
   bannerContainer: {
     marginVertical: 16,
