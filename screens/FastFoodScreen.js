@@ -80,23 +80,55 @@ const restaurants = [
 
 // Dữ liệu mẫu cho banner quảng cáo với title
 const banners = [
-    {
-      id: "1",
-      image: "https://via.placeholder.com/350x150?text=Banner+1",
-      title: "Tasty Dishes",
-    },
-    {
-      id: "2",
-      image: "https://via.placeholder.com/350x150?text=Banner+2",
-      title: "Special Offers",
-    },
-    {
-      id: "3",
-      image: "https://via.placeholder.com/350x150?text=Banner+3",
-      title: "New Dishes Daily",
-    },
-  ];
-  
+  {
+    id: "1",
+    image: "https://via.placeholder.com/350x150?text=Banner+1",
+    title: "Tasty Dishes",
+  },
+  {
+    id: "2",
+    image: "https://via.placeholder.com/350x150?text=Banner+2",
+    title: "Special Offers",
+  },
+  {
+    id: "3",
+    image: "https://via.placeholder.com/350x150?text=Banner+3",
+    title: "New Dishes Daily",
+  },
+];
+
+// Dữ liệu mẫu cho phần Recommended
+const recommendations = [
+  {
+    id: "r1",
+    type: "restaurant",
+    name: "Sushi World",
+    image: "https://via.placeholder.com/100",
+    deliveryTime: "20 mins",
+    rating: 4.9,
+    freeship: true,
+    nearYou: true,
+    dishes: [
+      { name: "Salmon Sushi", price: "$12.99" },
+      { name: "Tuna Sushi", price: "$11.99" },
+    ],
+  },
+  {
+    id: "r2",
+    type: "restaurant",
+    name: "Pasta House",
+    image: "https://via.placeholder.com/100",
+    deliveryTime: "25 mins",
+    rating: 4.7,
+    freeship: false,
+    nearYou: false,
+    dishes: [
+      { name: "Spaghetti Bolognese", price: "$10.99" },
+      { name: "Fettuccine Alfredo", price: "$11.99" },
+    ],
+  },
+  // Thêm các đề xuất khác tại đây
+];
 
 // Ánh xạ các tùy chọn sắp xếp với màu sắc tương ứng
 const sortOptionColors = {
@@ -171,10 +203,16 @@ const FastFoodScreen = ({ navigation }) => {
   // Kiểm tra xem có cần hiển thị nút "See All" không
   const shouldShowSeeAll = restaurants.length > 3;
 
-  // Hàm xử lý khi nhấn vào nút "See All"
+  // Hàm xử lý khi nhấn vào nút "See All" trong danh sách nhà hàng
   const handleSeeAllPress = () => {
     Alert.alert("See All", "Bạn đã bấm vào nút See All");
     // Thêm logic điều hướng hoặc hiển thị danh sách toàn bộ nhà hàng tại đây
+  };
+
+  // Hàm xử lý khi nhấn vào nút "See All" trong phần Recommended
+  const handleSeeAllRecommendedPress = () => {
+    Alert.alert("See All", "Bạn đã bấm vào nút See All trong Recommended for you");
+    // Thêm logic điều hướng hoặc hiển thị danh sách toàn bộ đề xuất tại đây
   };
 
   // Thêm một mục "See All" vào danh sách nếu cần
@@ -313,6 +351,86 @@ const FastFoodScreen = ({ navigation }) => {
     </View>
   );
 
+  // Component cho phần "Recommended for you"
+  const RecommendedSection = () => {
+    if (recommendations.length === 0) return null;
+
+    const firstRecommendation = recommendations[0];
+
+    return (
+      <View style={styles.recommendedContainer}>
+        {/* Header của phần Recommended */}
+        <View style={styles.recommendedHeader}>
+          <Text style={styles.recommendedTitle}>Recommended for you</Text>
+          {recommendations.length > 1 && (
+            <TouchableOpacity onPress={handleSeeAllRecommendedPress}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Card của đề xuất đầu tiên */}
+        <TouchableOpacity
+          style={styles.recommendedCard}
+          onPress={() => handleRestaurantPress(firstRecommendation.name)}
+        >
+          <Image
+            source={{ uri: firstRecommendation.image }}
+            style={styles.restaurantImage}
+          />
+
+          <View style={styles.restaurantInfo}>
+            <Text style={styles.restaurantName}>{firstRecommendation.name}</Text>
+
+            <View style={styles.dishesContainer}>
+              {firstRecommendation.dishes.slice(0, 2).map((dish, index) => (
+                <Text key={index} style={styles.dishText}>
+                  {dish.name} - {dish.price}
+                </Text>
+              ))}
+              {firstRecommendation.dishes.length > 2 && (
+                <Text style={styles.moreDishesText}>
+                  +{firstRecommendation.dishes.length - 2} more
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.restaurantDetails}>
+              <Text style={styles.restaurantDetailText}>
+                {firstRecommendation.deliveryTime}
+              </Text>
+              <Ionicons name="star" size={16} color="#f1c40f" />
+              <Text style={styles.restaurantDetailText}>
+                {firstRecommendation.rating}
+              </Text>
+            </View>
+
+            <View style={styles.chipsContainer}>
+              {firstRecommendation.freeship && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Freeship</Text>
+                </View>
+              )}
+              {firstRecommendation.nearYou && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Near You</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // Hàm render Footer bao gồm banner và Recommended
+  const renderFooter = () => (
+    <View>
+      {renderBannerAd()}
+      <RecommendedSection />
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       {/* Thanh tìm kiếm */}
@@ -420,7 +538,7 @@ const FastFoodScreen = ({ navigation }) => {
         renderItem={renderItem}
         contentContainerStyle={styles.restaurantList}
         showsVerticalScrollIndicator={false}
-        ListFooterComponent={shouldShowSeeAll ? renderBannerAd() : null} // Thêm BannerAd ở cuối danh sách nếu có "See All"
+        ListFooterComponent={renderFooter} // Thêm BannerAd và Recommended ở cuối danh sách
       />
     </View>
   );
@@ -649,5 +767,28 @@ const styles = StyleSheet.create({
   },
   paginationDotInactive: {
     backgroundColor: "#ccc",
+  },
+  recommendedContainer: {
+    marginTop: 20,
+  },
+  recommendedHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  recommendedTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  recommendedCard: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    overflow: "hidden",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
 });
