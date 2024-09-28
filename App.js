@@ -3,6 +3,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./screens/LoginScreen";
+import GoogleLoginScreen from "./screens/GoogleLoginScreen";
 import PhoneLoginScreen from "./screens/PhoneLoginScreen";
 import MyOrderScreen from "./screens/MyOrderScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
@@ -68,6 +69,11 @@ export default function App() {
         <Stack.Screen
           name="Login"
           component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="GoogleLogin"
+          component={GoogleLoginScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

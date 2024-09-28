@@ -19,7 +19,7 @@ const LoginScreen = () => {
           <Text style={styles.buttonText}>Tiếp tục với Facebook</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={()=> navigation.navigate('GoogleLogin')}>
           <FontAwesome name="google" size={24} color="red" style={styles.icon} />
           <Text style={styles.buttonText}>Tiếp tục với Google</Text>
         </TouchableOpacity>
