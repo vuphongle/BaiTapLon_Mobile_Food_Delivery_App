@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   Alert,
   ScrollView,
+  ActivityIndicator, // Thêm ActivityIndicator
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -24,30 +25,48 @@ const GoogleLoginScreen = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Trạng thái tải
   const navigation = useNavigation();
 
   const handleAuthentication = async () => {
+    // Kiểm tra email và mật khẩu trước khi bắt đầu
+    if (!email || !password || (!isLogin && !confirmPassword)) {
+      Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
+
+    setIsLoading(true); // Bắt đầu tải
+
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
         console.log("Đăng nhập thành công!");
-        navigation.replace("MainTabs"); // Navigate to main screen after login
+        // Giả sử bạn muốn giữ ActivityIndicator một chút trước khi điều hướng
+        setTimeout(() => {
+          setIsLoading(false);
+          navigation.replace("MainTabs"); // Điều hướng sau khi tải
+        }, 1000); // 1 giây
       } else {
-        // Check if password and confirmPassword match
+        // Kiểm tra nếu mật khẩu và xác nhận mật khẩu trùng nhau
         if (password !== confirmPassword) {
           Alert.alert("Lỗi", "Mật khẩu và Nhập lại mật khẩu không khớp.");
+          setIsLoading(false); // Kết thúc tải khi có lỗi
           return;
         }
 
-        // Register with Firebase
+        // Đăng ký với Firebase
         await createUserWithEmailAndPassword(auth, email, password);
         console.log("Đăng ký thành công!");
         Alert.alert("Thành công", "Đăng ký tài khoản thành công!");
-        navigation.replace("MainTabs"); // Navigate to main screen after successful registration
+        setTimeout(() => {
+          setIsLoading(false);
+          navigation.replace("MainTabs"); // Điều hướng sau khi tải
+        }, 1000); // 1 giây
       }
     } catch (error) {
-      // Show error alert if authentication fails
+      // Hiển thị thông báo lỗi nếu xác thực thất bại
       Alert.alert("Lỗi", error.message);
+      setIsLoading(false); // Kết thúc tải khi có lỗi
     }
   };
 
@@ -55,11 +74,11 @@ const GoogleLoginScreen = () => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20} // Adjust if necessary
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20} // Điều chỉnh nếu cần
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.inner}>
-          {/* Top Content: Header and Form */}
+          {/* Nội dung phía trên: Header và Form */}
           <View style={styles.topContent}>
             {/* Header */}
             <View style={styles.headerContainer}>
@@ -71,7 +90,7 @@ const GoogleLoginScreen = () => {
             {/* Form */}
             <ScrollView
               contentContainerStyle={styles.formContainer}
-              keyboardShouldPersistTaps="handled" // Ensures taps are handled properly
+              keyboardShouldPersistTaps="handled" // Đảm bảo xử lý các lần chạm đúng cách
             >
               <Text style={styles.label}>Email</Text>
               <TextInput
@@ -92,7 +111,7 @@ const GoogleLoginScreen = () => {
                 onChangeText={setPassword}
               />
 
-              {/* Confirm Password (only in Register mode) */}
+              {/* Xác nhận mật khẩu (chỉ trong chế độ đăng ký) */}
               {!isLogin && (
                 <>
                   <Text style={styles.label}>Nhập lại mật khẩu</Text>
@@ -108,19 +127,24 @@ const GoogleLoginScreen = () => {
             </ScrollView>
           </View>
 
-          {/* Bottom Content: Button and Switch */}
+          {/* Nội dung phía dưới: Nút và Chuyển đổi */}
           <View style={styles.bottomContent}>
-            {/* Authentication Button */}
+            {/* Nút xác thực */}
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, isLoading && styles.buttonDisabled]}
               onPress={handleAuthentication}
+              disabled={isLoading} // Vô hiệu hóa khi đang tải
             >
-              <Text style={styles.buttonText}>
-                {isLogin ? "Đăng nhập" : "Đăng ký"}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>
+                  {isLogin ? "Đăng nhập" : "Đăng ký"}
+                </Text>
+              )}
             </TouchableOpacity>
 
-            {/* Switch between Login and Register */}
+            {/* Chuyển đổi giữa Đăng nhập và Đăng ký */}
             <View style={styles.switchContainer}>
               <Text>{isLogin ? "Chưa có tài khoản?" : "Đã có tài khoản?"}</Text>
               <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
@@ -142,12 +166,12 @@ const styles = StyleSheet.create({
   },
   inner: {
     flex: 1,
-    justifyContent: "space-between", // Distribute space between top and bottom content
+    justifyContent: "space-between", // Phân phối không gian giữa nội dung trên và dưới
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
   topContent: {
-    flex: 1, // Take up remaining space above bottom content
+    flex: 1, // Chiếm không gian còn lại phía trên nội dung dưới
   },
   headerContainer: {
     alignItems: "center",
@@ -159,7 +183,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   formContainer: {
-    // Removed fixed margins
+    // Đã loại bỏ margin cố định
   },
   label: {
     fontSize: 16,
@@ -173,14 +197,17 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
   },
   bottomContent: {
-    // No flex, stays at the bottom
+    // Không có flex, nằm ở dưới cùng
   },
   button: {
     backgroundColor: "#43bed8",
     paddingVertical: 15,
     borderRadius: 30,
     alignItems: "center",
-    marginBottom: 10, // Space between button and switch
+    marginBottom: 10, // Khoảng cách giữa nút và chuyển đổi
+  },
+  buttonDisabled: {
+    backgroundColor: "#a0cde4", // Màu khác khi nút bị vô hiệu hóa
   },
   buttonText: {
     color: "#fff",
