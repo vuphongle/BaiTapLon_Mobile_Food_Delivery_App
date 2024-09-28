@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { LogBox } from 'react-native';
+
 
 const LoginScreen = () => {
   const navigation = useNavigation();
+
+  useEffect(() => {
+    // Bỏ qua cảnh báo liên quan đến "@firebase/auth"
+    LogBox.ignoreLogs(['@firebase/auth']);
+  }, []);
+
 
   return (
     <View style={styles.container}>
