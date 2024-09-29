@@ -64,8 +64,8 @@ const SearchScreen = ({ route, navigation }) => {
           case "Near You":
             results = results.filter((restaurant) => restaurant.nearYou);
             break;
-          case "Parm":
-            results = results.filter((restaurant) => restaurant.type === "Parm");
+          case "Partner":
+            results = results.filter((restaurant) => restaurant.type === "Partner");
             break;
           default:
             break;
@@ -299,7 +299,7 @@ const SearchScreen = ({ route, navigation }) => {
           </TouchableOpacity>
 
           {/* Các chip khác (Filter Options) */}
-          {["Freeship", "Favorite", "Near You", "Parm"].map((option) => (
+          {["Freeship", "Favorite", "Near You", "Partner"].map((option) => (
             <TouchableOpacity
               key={option}
               style={[

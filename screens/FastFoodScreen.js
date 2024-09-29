@@ -348,7 +348,7 @@ const FastFoodScreen = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* Các chip khác (Filter Options) */}
-          {["Freeship", "Favorite", "Near You", "Parm"].map((option) => (
+          {["Freeship", "Favorite", "Near You", "Partner"].map((option) => (
             <TouchableOpacity
               key={option}
               style={[
