@@ -1,23 +1,23 @@
 // screens/FastFoodScreen.js
-import React, { useState, useRef } from "react";
-import { restaurants } from '../data/restaurants';
+import React, { useState, useEffect, useRef } from "react";
+import { fetchRestaurants } from '../data/restaurants'; // Import hàm fetchRestaurants
 import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   FlatList,
   Image,
   Dimensions,
   Alert,
   ScrollView,
+  ActivityIndicator, // Import ActivityIndicator để hiển thị loading
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 const { width } = Dimensions.get("window");
 
-// Dữ liệu mẫu cho nhà hàng được đề xuất
+// Dữ liệu mẫu cho nhà hàng được đề xuất (giữ nguyên dữ liệu tĩnh)
 const recommendedRestaurants = [
   {
     id: "5",
@@ -34,55 +34,10 @@ const recommendedRestaurants = [
       { name: "Salmon Nigiri", price: "$7.99" },
     ],
   },
-  {
-    id: "6",
-    type: "restaurant",
-    name: "Taco Fiesta",
-    image: "https://via.placeholder.com/100",
-    deliveryTime: "12 mins",
-    rating: 4.6,
-    freeship: false,
-    nearYou: true,
-    dishes: [
-      { name: "Beef Taco", price: "$3.99" },
-      { name: "Chicken Taco", price: "$3.49" },
-      { name: "Veggie Taco", price: "$3.29" },
-    ],
-  },
-  {
-    id: "7",
-    type: "restaurant",
-    name: "Pasta Paradise",
-    image: "https://via.placeholder.com/100",
-    deliveryTime: "22 mins",
-    rating: 4.7,
-    freeship: true,
-    nearYou: false,
-    dishes: [
-      { name: "Spaghetti Bolognese", price: "$11.99" },
-      { name: "Fettuccine Alfredo", price: "$10.99" },
-      { name: "Penne Arrabiata", price: "$9.99" },
-    ],
-  },
-  {
-    id: "8",
-    type: "restaurant",
-    name: "Noodle House",
-    image: "https://via.placeholder.com/100",
-    deliveryTime: "16 mins",
-    rating: 4.5,
-    freeship: false,
-    nearYou: true,
-    dishes: [
-      { name: "Beef Noodle Soup", price: "$7.99" },
-      { name: "Chicken Lo Mein", price: "$8.49" },
-      { name: "Vegetable Udon", price: "$6.99" },
-    ],
-  },
   // Thêm các nhà hàng được đề xuất khác tại đây
 ];
 
-// Dữ liệu mẫu cho banner quảng cáo với title
+// Dữ liệu mẫu cho banner quảng cáo với title (giữ nguyên dữ liệu tĩnh)
 const banners = [
   {
     id: "1",
@@ -110,6 +65,8 @@ const sortOptionColors = {
 };
 
 const FastFoodScreen = ({ navigation }) => {
+  const [restaurants, setRestaurants] = useState([]); // State cho danh sách nhà hàng
+  const [loading, setLoading] = useState(true); // State để hiển thị loading
   const [sortOption, setSortOption] = useState(null);
   const [filterOption, setFilterOption] = useState(null);
   const [isSortOptionsVisible, setSortOptionsVisible] = useState(false);
@@ -125,6 +82,16 @@ const FastFoodScreen = ({ navigation }) => {
       setCurrentBannerIndex(index);
     }
   }).current;
+
+  // Hàm lấy dữ liệu từ Firestore khi component được mount
+  useEffect(() => {
+    const getRestaurants = async () => {
+      const data = await fetchRestaurants();
+      setRestaurants(data);
+      setLoading(false);
+    };
+    getRestaurants();
+  }, []);
 
   // Hàm xử lý khi nhấn vào một nhà hàng
   const handleRestaurantPress = (name) => {
@@ -144,6 +111,7 @@ const FastFoodScreen = ({ navigation }) => {
     setSortOptionsVisible(false);
     setFilterOption(null); // Bỏ chọn các filter khi chọn sort
     // Thêm logic sắp xếp danh sách nhà hàng tại đây
+    sortRestaurants(option);
   };
 
   // Hàm xử lý khi nhấn vào một tùy chọn lọc
@@ -157,11 +125,51 @@ const FastFoodScreen = ({ navigation }) => {
     Alert.alert("Lọc", `Bạn đã chọn lọc theo: ${option}`);
     setSortOption(null); // Bỏ chọn sort khi chọn filter
     // Thêm logic lọc danh sách nhà hàng tại đây
+    filterRestaurants(option);
   };
 
   // Hàm mở/đóng dropdown sắp xếp
   const toggleSortOptions = () => {
     setSortOptionsVisible(!isSortOptionsVisible);
+  };
+
+  // Hàm sắp xếp danh sách nhà hàng
+  const sortRestaurants = (option) => {
+    let sorted = [...restaurants];
+    switch (option) {
+      case "Price: Low to High":
+        sorted.sort((a, b) => averagePrice(a.dishes) - averagePrice(b.dishes));
+        break;
+      case "Price: High to Low":
+        sorted.sort((a, b) => averagePrice(b.dishes) - averagePrice(a.dishes));
+        break;
+      case "Rating":
+        sorted.sort((a, b) => b.rating - a.rating);
+        break;
+      case "Delivery Time":
+        sorted.sort((a, b) => parseInt(a.deliveryTime) - parseInt(b.deliveryTime));
+        break;
+      default:
+        break;
+    }
+    setRestaurants(sorted);
+  };
+
+  // Hàm lọc danh sách nhà hàng
+  const filterRestaurants = (option) => {
+    let filtered = [...restaurants];
+    if (option === "Freeship") {
+      filtered = filtered.filter(restaurant => restaurant.freeship);
+    } else if (option === "Near You") {
+      filtered = filtered.filter(restaurant => restaurant.nearYou);
+    }
+    setRestaurants(filtered);
+  };
+
+  // Hàm tính giá trung bình của các món ăn trong nhà hàng
+  const averagePrice = (dishes) => {
+    const total = dishes.reduce((sum, dish) => sum + parseFloat(dish.price.replace('$', '')), 0);
+    return total / dishes.length;
   };
 
   // Giới hạn số lượng nhà hàng hiển thị lên đến 3
@@ -266,7 +274,9 @@ const FastFoodScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.restaurantDetails}>
-          <Text style={styles.restaurantDetailText}>{item.deliveryTime}</Text>
+          <Text style={styles.restaurantDetailText}>
+            {item.deliveryTime}
+          </Text>
           <Ionicons name="star" size={16} color="#f1c40f" />
           <Text style={styles.restaurantDetailText}>{item.rating}</Text>
         </View>
@@ -286,6 +296,16 @@ const FastFoodScreen = ({ navigation }) => {
       </View>
     </TouchableOpacity>
   );
+
+  // Hiển thị loading khi dữ liệu đang được lấy
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#43bed8" />
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -471,6 +491,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8f8f8",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   backButton: {
     flexDirection: "row",
@@ -662,7 +687,6 @@ const styles = StyleSheet.create({
     color: "#49bed9",
     fontSize: 24,
     fontWeight: "bold",
-    fontFamily: "Arial",
     width: 140,
   },
   paginationContainer: {

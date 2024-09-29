@@ -1,5 +1,6 @@
 // screens/SearchScreen.js
 import React, { useState, useEffect } from "react";
+import { fetchRestaurants } from '../data/restaurants'; // Import hàm fetchRestaurants thay vì dữ liệu tĩnh
 import {
   View,
   Text,
@@ -9,16 +10,18 @@ import {
   Dimensions,
   FlatList,
   ScrollView,
+  ActivityIndicator, // Import ActivityIndicator để hiển thị loading
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import CustomHeader from "../components/CustomHeader";
-import { restaurants } from "../data/restaurants"; // Import dữ liệu nhà hàng
 
 const { width } = Dimensions.get("window");
 
 const SearchScreen = ({ route, navigation }) => {
   const { query } = route.params; // Lấy từ khóa từ navigation params
   const [matchedRestaurants, setMatchedRestaurants] = useState([]);
+  const [allRestaurants, setAllRestaurants] = useState([]); // Thêm state để lưu toàn bộ nhà hàng
+  const [loading, setLoading] = useState(true); // State để hiển thị loading
 
   // State variables for sorting and filtering
   const [sortOption, setSortOption] = useState(null);
@@ -26,8 +29,20 @@ const SearchScreen = ({ route, navigation }) => {
   const [filterOptions, setFilterOptions] = useState([]); // Chuyển từ filterOption sang filterOptions (mảng)
 
   useEffect(() => {
+    // Hàm lấy dữ liệu nhà hàng từ Firestore khi component được mount
+    const getRestaurants = async () => {
+      const data = await fetchRestaurants();
+      setAllRestaurants(data);
+      setLoading(false);
+    };
+    getRestaurants();
+  }, []);
+
+  useEffect(() => {
+    if (loading) return; // Nếu đang loading, không thực hiện tìm kiếm
+
     // Tìm kiếm các nhà hàng có món ăn khớp với từ khóa
-    let results = restaurants.filter((restaurant) =>
+    let results = allRestaurants.filter((restaurant) =>
       restaurant.dishes.some((dish) =>
         dish.name.toLowerCase().includes(query.toLowerCase())
       )
@@ -100,7 +115,7 @@ const SearchScreen = ({ route, navigation }) => {
     }
 
     setMatchedRestaurants(results);
-  }, [query, sortOption, filterOptions]);
+  }, [query, sortOption, filterOptions, loading, allRestaurants]);
 
   // Ánh xạ các tùy chọn sắp xếp với màu sắc tương ứng
   const sortOptionColors = {
@@ -146,7 +161,7 @@ const SearchScreen = ({ route, navigation }) => {
         }}
       >
         <Image
-          source={{ uri: item.image }}
+          source={{ uri: item.image || "https://via.placeholder.com/100" }}
           style={styles.restaurantImage}
           resizeMode="cover"
         />
@@ -202,6 +217,16 @@ const SearchScreen = ({ route, navigation }) => {
       </TouchableOpacity>
     </View>
   );
+
+  if (loading) {
+    // Hiển thị loading indicator khi dữ liệu đang được lấy
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#43bed8" />
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -320,6 +345,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8f8f8",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   sortContainer: {
     paddingHorizontal: 16,
