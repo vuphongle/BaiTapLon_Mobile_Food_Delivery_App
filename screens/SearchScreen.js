@@ -10,7 +10,7 @@ import {
   Dimensions,
   FlatList,
   ScrollView,
-  ActivityIndicator, // Import ActivityIndicator để hiển thị loading
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import CustomHeader from "../components/CustomHeader";
@@ -27,6 +27,9 @@ const SearchScreen = ({ route, navigation }) => {
   const [sortOption, setSortOption] = useState(null);
   const [isSortOptionsVisible, setIsSortOptionsVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState([]); // Chuyển từ filterOption sang filterOptions (mảng)
+
+  // State để quản lý số lượng nhà hàng hiển thị
+  const [itemsToShow, setItemsToShow] = useState(6);
 
   useEffect(() => {
     // Hàm lấy dữ liệu nhà hàng từ Firestore khi component được mount
@@ -115,15 +118,8 @@ const SearchScreen = ({ route, navigation }) => {
     }
 
     setMatchedRestaurants(results);
+    setItemsToShow(6); // Reset số lượng hiển thị khi kết quả thay đổi
   }, [query, sortOption, filterOptions, loading, allRestaurants]);
-
-  // Ánh xạ các tùy chọn sắp xếp với màu sắc tương ứng
-  const sortOptionColors = {
-    "Price: Low to High": "#43bed8",
-    "Price: High to Low": "#43bed8",
-    Rating: "#43bed8",
-    "Delivery Time": "#43bed8",
-  };
 
   // Hàm để toggle sort options visibility
   const toggleSortOptions = () => {
@@ -149,46 +145,57 @@ const SearchScreen = ({ route, navigation }) => {
     });
   };
 
+  // Hàm để xử lý khi người dùng nhấn "See more"
+  const handleSeeMore = () => {
+    setItemsToShow((prev) => prev + 6); // Tăng số lượng nhà hàng hiển thị
+  };
+
   // Hàm render cho mỗi nhà hàng
-  const renderRestaurant = ({ item }) => (
-    <View style={styles.restaurantContainer}>
-      {/* Thông tin nhà hàng */}
-      <TouchableOpacity
-        style={styles.restaurantHeader}
-        onPress={() => {
-          // Điều hướng đến màn hình chi tiết nhà hàng nếu có
-          navigation.navigate("RestaurantDetail", { restaurant: item });
-        }}
-      >
-        <Image
-          source={{ uri: item.image || "https://via.placeholder.com/100" }}
-          style={styles.restaurantImage}
-          resizeMode="cover"
-        />
-        <View style={styles.restaurantInfo}>
-          <Text style={styles.restaurantName}>{item.name}</Text>
-          <Text style={styles.restaurantDetails}>
-            {item.deliveryTime} • ⭐ {item.rating}
-          </Text>
-          <View style={styles.chipsContainer}>
-            {item.freeship && (
-              <View style={styles.chip}>
-                <Text style={styles.chipText}>Freeship</Text>
-              </View>
-            )}
-            {item.nearYou && (
-              <View style={styles.chip}>
-                <Text style={styles.chipText}>Near You</Text>
-              </View>
-            )}
-          </View>
-          {/* Danh sách món ăn trong nhà hàng */}
-          <View style={styles.dishesContainer}>
-            {item.dishes
-              .filter((dish) =>
-                dish.name.toLowerCase().includes(query.toLowerCase())
-              )
-              .map((dish, index) => (
+  const renderRestaurant = ({ item }) => {
+    // Lọc các món ăn phù hợp với từ khóa tìm kiếm
+    const filteredDishes = item.dishes.filter((dish) =>
+      dish.name.toLowerCase().includes(query.toLowerCase())
+    );
+
+    // Giới hạn số lượng món ăn hiển thị là 3
+    const dishesToShow = filteredDishes.slice(0, 3);
+    const remainingDishesCount = filteredDishes.length - dishesToShow.length;
+
+    return (
+      <View style={styles.restaurantContainer}>
+        {/* Thông tin nhà hàng */}
+        <TouchableOpacity
+          style={styles.restaurantHeader}
+          onPress={() => {
+            // Điều hướng đến màn hình chi tiết nhà hàng nếu có
+            navigation.navigate("RestaurantDetail", { restaurant: item });
+          }}
+        >
+          <Image
+            source={{ uri: item.image || "https://via.placeholder.com/100" }}
+            style={styles.restaurantImage}
+            resizeMode="cover"
+          />
+          <View style={styles.restaurantInfo}>
+            <Text style={styles.restaurantName}>{item.name}</Text>
+            <Text style={styles.restaurantDetails}>
+              {item.deliveryTime} • ⭐ {item.rating}
+            </Text>
+            <View style={styles.chipsContainer}>
+              {item.freeship && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Freeship</Text>
+                </View>
+              )}
+              {item.nearYou && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Near You</Text>
+                </View>
+              )}
+            </View>
+            {/* Danh sách món ăn trong nhà hàng */}
+            <View style={styles.dishesContainer}>
+              {dishesToShow.map((dish, index) => (
                 <TouchableOpacity
                   key={index}
                   style={styles.dishCard}
@@ -212,11 +219,36 @@ const SearchScreen = ({ route, navigation }) => {
                   </View>
                 </TouchableOpacity>
               ))}
+              {remainingDishesCount > 0 && (
+                <TouchableOpacity
+                  style={styles.moreDishesContainer}
+                  onPress={() => {
+                    // Bạn có thể điều hướng đến danh sách món ăn đầy đủ hoặc mở rộng danh sách
+                    navigation.navigate("RestaurantDetail", { restaurant: item });
+                  }}
+                >
+                  <Text style={styles.moreDishesText}>
+                    Và {remainingDishesCount} món khác
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // Hàm render cho ListFooterComponent
+  const renderFooter = () => {
+    if (itemsToShow >= matchedRestaurants.length) return null; // Không hiển thị nút nếu đã hiển thị hết
+
+    return (
+      <TouchableOpacity style={styles.seeMoreButton} onPress={handleSeeMore}>
+        <Text style={styles.seeMoreText}>See more</Text>
       </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   if (loading) {
     // Hiển thị loading indicator khi dữ liệu đang được lấy
@@ -320,12 +352,13 @@ const SearchScreen = ({ route, navigation }) => {
       {/* Nội dung tìm kiếm */}
       {matchedRestaurants.length > 0 ? (
         <FlatList
-          data={matchedRestaurants}
+          data={matchedRestaurants.slice(0, itemsToShow)} // Hiển thị phần dữ liệu theo số lượng
           keyExtractor={(item) => item.id}
           renderItem={renderRestaurant}
           contentContainerStyle={styles.listContainer}
           // Đảm bảo không hiển thị scroll bar
           showsVerticalScrollIndicator={false}
+          ListFooterComponent={renderFooter} // Thêm ListFooterComponent
         />
       ) : (
         <View style={styles.noResultsContainer}>
@@ -340,6 +373,14 @@ const SearchScreen = ({ route, navigation }) => {
 };
 
 export default SearchScreen;
+
+// Định nghĩa màu sắc cho các tùy chọn sort nếu cần
+const sortOptionColors = {
+  "Price: Low to High": "#ff9800",
+  "Price: High to Low": "#f44336",
+  "Rating": "#4caf50",
+  "Delivery Time": "#2196f3",
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -514,6 +555,14 @@ const styles = StyleSheet.create({
     color: "#e91e63",
     marginTop: 4,
   },
+  moreDishesContainer: {
+    paddingVertical: 8,
+  },
+  moreDishesText: {
+    fontSize: 14,
+    color: "#43bed8",
+    fontWeight: "bold",
+  },
   noResultsContainer: {
     flex: 1,
     justifyContent: "center",
@@ -525,5 +574,18 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
     marginTop: 16,
+  },
+  seeMoreButton: {
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#43bed8",
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  seeMoreText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
