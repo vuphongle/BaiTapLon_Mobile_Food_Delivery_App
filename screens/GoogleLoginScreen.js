@@ -1,3 +1,4 @@
+// screens/GoogleLoginScreen.js
 import React, { useState } from "react";
 import {
   View,
@@ -41,11 +42,11 @@ const GoogleLoginScreen = () => {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
         console.log("Đăng nhập thành công!");
-        // Giả sử bạn muốn giữ ActivityIndicator một chút trước khi điều hướng
-        setTimeout(() => {
-          setIsLoading(false);
-          navigation.replace("MainTabs"); // Điều hướng sau khi tải
-        }, 1000); // 1 giây
+        // Reset ngăn xếp điều hướng và thiết lập MainTabs làm màn hình duy nhất
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "MainTabs" }],
+        });
       } else {
         // Kiểm tra nếu mật khẩu và xác nhận mật khẩu trùng nhau
         if (password !== confirmPassword) {
@@ -58,10 +59,11 @@ const GoogleLoginScreen = () => {
         await createUserWithEmailAndPassword(auth, email, password);
         console.log("Đăng ký thành công!");
         Alert.alert("Thành công", "Đăng ký tài khoản thành công!");
-        setTimeout(() => {
-          setIsLoading(false);
-          navigation.replace("MainTabs"); // Điều hướng sau khi tải
-        }, 1000); // 1 giây
+        // Reset ngăn xếp điều hướng và thiết lập MainTabs làm màn hình duy nhất
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "MainTabs" }],
+        });
       }
     } catch (error) {
       // Hiển thị thông báo lỗi nếu xác thực thất bại
