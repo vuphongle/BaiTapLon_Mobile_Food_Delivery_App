@@ -12,6 +12,7 @@ import AccountScreen from "./screens/AccountScreen";
 import HomeStack from "./navigation/HomeStack"; // Import HomeStack
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { OrderProvider } from "./context/OrderContext"; // Import OrderProvider
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -64,29 +65,31 @@ const MainTabs = () => {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="GoogleLogin"
-          component={GoogleLoginScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="PhoneLogin"
-          component={PhoneLoginScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="MainTabs"
-          component={MainTabs}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <OrderProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="GoogleLogin"
+            component={GoogleLoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PhoneLogin"
+            component={PhoneLoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="MainTabs"
+            component={MainTabs}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </OrderProvider>
   );
 }

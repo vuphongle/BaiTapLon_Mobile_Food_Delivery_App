@@ -1,18 +1,20 @@
 // screens/RestaurantDetailScreen.js
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { OrderContext } from '../context/OrderContext'; // Import OrderContext
 
 const { width } = Dimensions.get('window');
 
 const RestaurantDetailScreen = ({ route, navigation }) => {
   const { restaurant } = route.params;
+  const { myOrder, addDishToOrder } = useContext(OrderContext); // Sử dụng Context
 
   // Get unique categories
   const categories = [...new Set(restaurant.dishes.map(dish => dish.category))];
 
-  const handleAddDish = (dishName) => {
-    Alert.alert('Thêm món', `Bạn đã thêm ${dishName} vào giỏ hàng.`);
+  const handleAddDish = (dish) => {
+    addDishToOrder(dish, restaurant);
   };
 
   return (
@@ -56,7 +58,7 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                     <View style={styles.dishInfoContainer}>
                       <View style={styles.dishInfo}>
                         <Text style={styles.dishName}>{dish.name}</Text>
-                        <Text style={styles.dishPrice}>{dish.price}</Text>
+                        <Text style={styles.dishPrice}>{dish.price} VND</Text>
                       </View>
                       <View style={styles.dishStats}>
                         <Ionicons name="heart-outline" size={16} color="#e91e63" />
@@ -65,7 +67,7 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                         <Text style={styles.statText}>{dish.sales}</Text>
                       </View>
                     </View>
-                    <TouchableOpacity onPress={() => handleAddDish(dish.name)} style={styles.addButton}>
+                    <TouchableOpacity onPress={() => handleAddDish(dish)} style={styles.addButton}>
                       <Ionicons name="add-circle-outline" size={28} color="#4caf50" />
                     </TouchableOpacity>
                   </View>
@@ -165,7 +167,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dishInfo: {
-    // Changed from row to column to align price to the left
     flexDirection: 'column',
     alignItems: 'flex-start',
   },
