@@ -16,7 +16,7 @@ import { fetchRestaurants } from "../data/restaurants"; // Import hàm fetchRest
 
 const { width } = Dimensions.get("window");
 
-// Dữ liệu cho banners, categories, collections, recommendedItems, saleItems
+// Dữ liệu cho banners, categories, collections
 const banners = [
   {
     id: "1",
@@ -72,72 +72,6 @@ const initialCollections = [
   },
 ];
 
-const recommendedItems = [
-  {
-    id: "1",
-    title: "Nhà hàng 1",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 phút",
-  },
-  {
-    id: "2",
-    title: "Nhà hàng 2",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 phút",
-  },
-  {
-    id: "3",
-    title: "Nhà hàng 3",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 phút",
-  },
-  {
-    id: "4",
-    title: "Nhà hàng 4",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 phút",
-  },
-  {
-    id: "5",
-    title: "Nhà hàng 5",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 phút",
-  },
-];
-
-const saleItems = [
-  {
-    id: "1",
-    title: "Giảm 50%",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.0",
-  },
-  {
-    id: "2",
-    title: "Giảm 50%",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.0",
-  },
-  {
-    id: "3",
-    title: "Giảm 50%",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.0",
-  },
-  {
-    id: "4",
-    title: "Giảm 50%",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.0",
-  },
-  {
-    id: "5",
-    title: "Giảm 50%",
-    image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.0",
-  },
-];
-
 // Helper function để chia mảng collections thành các nhóm có tối đa 2 mục
 const chunkArray = (array, size) => {
   const result = [];
@@ -147,10 +81,26 @@ const chunkArray = (array, size) => {
   return result;
 };
 
+// Helper function để lấy ngẫu nhiên các mục từ mảng
+const getRandomItems = (array, num) => {
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, num);
+};
+
+// Helper function để giới hạn độ dài của chuỗi
+const truncate = (str, maxLength) => {
+  if (str.length > maxLength) {
+    return str.slice(0, maxLength) + "...";
+  }
+  return str;
+};
+
 const HomeScreen = ({ navigation }) => {
   const [collectionsData, setCollectionsData] = useState(initialCollections); // Dữ liệu bộ sưu tập động
   const [allRestaurants, setAllRestaurants] = useState([]); // Lưu trữ toàn bộ nhà hàng
   const [loadingRestaurants, setLoadingRestaurants] = useState(true); // State để hiển thị loading khi tải nhà hàng
+  const [recommendedItems, setRecommendedItems] = useState([]); // Dữ liệu đề xuất
+  const [saleItems, setSaleItems] = useState([]); // Dữ liệu giảm giá
 
   useEffect(() => {
     // Hàm lấy dữ liệu nhà hàng khi component được mount
@@ -215,6 +165,25 @@ const HomeScreen = ({ navigation }) => {
     });
 
     setCollectionsData(updatedCollections);
+
+    // Cập nhật đề xuất và giảm giá ngẫu nhiên từ allRestaurants
+    const recommended = getRandomItems(allRestaurants, 5).map((restaurant) => ({
+      id: restaurant.id,
+      title: truncate(restaurant.name, 20),
+      image: restaurant.image || "https://via.placeholder.com/100",
+      rating: `⭐ ${restaurant.rating} • ${restaurant.deliveryTime} phút`,
+      restaurant: restaurant, // Thêm đối tượng nhà hàng
+    }));
+    setRecommendedItems(recommended);
+
+    const sales = getRandomItems(allRestaurants, 5).map((restaurant) => ({
+      id: restaurant.id,
+      title: `Giảm ${restaurant.discount ? restaurant.discount : "50"}%`,
+      image: restaurant.image || "https://via.placeholder.com/100",
+      rating: `⭐ ${restaurant.rating}`,
+      restaurant: restaurant, // Thêm đối tượng nhà hàng
+    }));
+    setSaleItems(sales);
   }, [loadingRestaurants, allRestaurants]);
 
   // Helper function để xử lý khi nhấn vào mục bộ sưu tập
@@ -226,7 +195,16 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // Hàm xử lý khi nhấn vào mục trong Categories, Recommended hoặc Sale
+  // Helper function để xử lý khi nhấn vào nhà hàng trong đề xuất hoặc giảm giá
+  const handleRestaurantPress = (restaurant) => {
+    if (restaurant) {
+      navigation.navigate("RestaurantDetail", { restaurant: restaurant });
+    } else {
+      Alert.alert("Thông báo", "Thông tin nhà hàng không hợp lệ.");
+    }
+  };
+
+  // Hàm xử lý khi nhấn vào mục trong Categories, Voucher hoặc View All
   const handleItemPress = (title) => {
     const categoryNames = [
       "Thức ăn nhanh",
@@ -371,7 +349,7 @@ const HomeScreen = ({ navigation }) => {
               <TouchableOpacity
                 key={item.id}
                 style={styles.card}
-                onPress={() => handleItemPress(item.title)}
+                onPress={() => handleRestaurantPress(item.restaurant)}
               >
                 <Image
                   source={{ uri: item.image }}
@@ -401,7 +379,7 @@ const HomeScreen = ({ navigation }) => {
               <TouchableOpacity
                 key={item.id}
                 style={styles.saleCard}
-                onPress={() => handleItemPress(item.title)}
+                onPress={() => handleRestaurantPress(item.restaurant)}
               >
                 <Image
                   source={{ uri: item.image }}
