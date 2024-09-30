@@ -201,7 +201,7 @@ const MyOrderScreen = () => {
                   onChangeText={setDeliveryAddress}
                 />
                 <Text style={styles.deliveryTime}>
-                  Thời gian giao hàng: {getDeliveryTime()} phút
+                  Thời gian giao hàng: {getDeliveryTime()}
                 </Text>
               </View>
 
@@ -300,7 +300,7 @@ const MyOrderScreen = () => {
               <Text style={styles.summaryValue}>
                 {selectedDiscount && selectedDiscount.code === "FREESHIP"
                   ? "0 VND"
-                  : formatPrice(calculateShippingFee())}
+                  : formatPrice(calculateShippingFee() + " VND")} 
               </Text>
             </View>
             {selectedDiscount && selectedDiscount.code !== "FREESHIP" && (

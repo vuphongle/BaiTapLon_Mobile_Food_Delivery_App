@@ -63,12 +63,12 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                       <View style={styles.dishStats}>
                         <Ionicons name="heart-outline" size={16} color="#e91e63" />
                         <Text style={styles.statText}>{dish.likes}</Text>
-                        <Ionicons name="cart-outline" size={16} color="#4caf50" style={{ marginLeft: 10 }} />
+                        <Ionicons name="cart-outline" size={16} color="#43bed8" style={{ marginLeft: 10 }} />
                         <Text style={styles.statText}>{dish.sales}</Text>
                       </View>
                     </View>
                     <TouchableOpacity onPress={() => handleAddDish(dish)} style={styles.addButton}>
-                      <Ionicons name="add-circle-outline" size={28} color="#4caf50" />
+                      <Ionicons name="add-circle-outline" size={28} color="#43bed8" />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   infoContainer: {
-    // Additional styling if needed
+    paddingBottom: 16,
   },
   restaurantName: {
     fontSize: 24,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   },
   dishPrice: {
     fontSize: 14,
-    color: '#e91e63',
+    color: 'black',
     marginTop: 4,
   },
   dishStats: {
