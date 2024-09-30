@@ -35,12 +35,12 @@ const banners = [
 ];
 
 const categories = [
-  { id: "1", name: "Rice", icon: "restaurant-outline" },
-  { id: "2", name: "Healthy", icon: "leaf-outline" },
-  { id: "3", name: "Drink", icon: "wine-outline" },
-  { id: "4", name: "Fastfood", icon: "fast-food-outline" },
-  { id: "5", name: "Dessert", icon: "ice-cream-outline" },
-  { id: "6", name: "Snack", icon: "nutrition-outline" },
+  { id: "1", name: "Thức ăn nhanh", icon: "fast-food-outline" },
+  { id: "2", name: "Đồ ăn nhẹ", icon: "nutrition-outline" },
+  { id: "3", name: "Đồ uống", icon: "wine-outline" },
+  { id: "4", name: "Cơm", icon: "restaurant-outline" },
+  { id: "5", name: "Lành mạnh", icon: "leaf-outline" },
+  { id: "6", name: "Tráng miệng", icon: "ice-cream-outline" },
 ];
 
 const collections = [
@@ -79,64 +79,64 @@ const collections = [
 const recommendedItems = [
   {
     id: "1",
-    title: "Restaurant 1",
+    title: "Nhà hàng 1",
     image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 mins",
+    rating: "⭐ 4.5 • 30-40 phút",
   },
   {
     id: "2",
-    title: "Restaurant 2",
+    title: "Nhà hàng 2",
     image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 mins",
+    rating: "⭐ 4.5 • 30-40 phút",
   },
   {
     id: "3",
-    title: "Restaurant 3",
+    title: "Nhà hàng 3",
     image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 mins",
+    rating: "⭐ 4.5 • 30-40 phút",
   },
   {
     id: "4",
-    title: "Restaurant 4",
+    title: "Nhà hàng 4",
     image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 mins",
+    rating: "⭐ 4.5 • 30-40 phút",
   },
   {
     id: "5",
-    title: "Restaurant 5",
+    title: "Nhà hàng 5",
     image: "https://via.placeholder.com/100",
-    rating: "⭐ 4.5 • 30-40 mins",
+    rating: "⭐ 4.5 • 30-40 phút",
   },
 ];
 
 const saleItems = [
   {
     id: "1",
-    title: "50% OFF",
+    title: "Giảm 50%",
     image: "https://via.placeholder.com/100",
     rating: "⭐ 4.0",
   },
   {
     id: "2",
-    title: "50% OFF",
+    title: "Giảm 50%",
     image: "https://via.placeholder.com/100",
     rating: "⭐ 4.0",
   },
   {
     id: "3",
-    title: "50% OFF",
+    title: "Giảm 50%",
     image: "https://via.placeholder.com/100",
     rating: "⭐ 4.0",
   },
   {
     id: "4",
-    title: "50% OFF",
+    title: "Giảm 50%",
     image: "https://via.placeholder.com/100",
     rating: "⭐ 4.0",
   },
   {
     id: "5",
-    title: "50% OFF",
+    title: "Giảm 50%",
     image: "https://via.placeholder.com/100",
     rating: "⭐ 4.0",
   },
@@ -156,7 +156,14 @@ const HomeScreen = ({ navigation }) => {
 
   // Hàm xử lý khi nhấn vào mục trong Categories, Recommended hoặc Sale
   const handleItemPress = (title) => {
-    const categoryNames = ["Rice", "Healthy", "Drink", "Fastfood", "Dessert", "Snack"];
+    const categoryNames = [
+      "Thức ăn nhanh",
+      "Đồ ăn nhẹ",
+      "Đồ uống",
+      "Cơm",
+      "Lành mạnh",
+      "Tráng miệng",
+    ];
     if (categoryNames.includes(title)) {
       navigation.navigate("Category", { category: title });
     } else {
@@ -191,9 +198,9 @@ const HomeScreen = ({ navigation }) => {
               {/* Nút "SEE MORE" đặt ở góc dưới bên trái */}
               <TouchableOpacity
                 style={styles.seeMoreButton}
-                onPress={() => handleItemPress("See More")}
+                onPress={() => handleItemPress("SEE MORE")}
               >
-                <Text style={styles.seeMoreText}>SEE MORE</Text>
+                <Text style={styles.seeMoreText}>XEM THÊM</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -230,9 +237,9 @@ const HomeScreen = ({ navigation }) => {
               style={styles.voucherIcon}
             />
             <View>
-              <Text style={styles.voucherText}>You have 5 vouchers here</Text>
+              <Text style={styles.voucherText}>Bạn có 5 voucher</Text>
               <Text style={styles.voucherSubText}>
-                Tap to view your vouchers
+                Nhấn để xem voucher của bạn
               </Text>
             </View>
           </View>
@@ -242,11 +249,11 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.collectionsContainer}>
           {/* Header Collections */}
           <View style={styles.collectionsHeader}>
-            <Text style={styles.sectionTitle}>Collections</Text>
+            <Text style={styles.sectionTitle}>Bộ sưu tập</Text>
             <TouchableOpacity
               onPress={() => handleItemPress("View all Collections")}
             >
-              <Text style={styles.viewAllText}>View all</Text>
+              <Text style={styles.viewAllText}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
           {/* Grid của Collections với ScrollView ngang */}
@@ -276,11 +283,11 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.sectionContainer}>
           {/* Header Section */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recommended for you</Text>
+            <Text style={styles.sectionTitle}>Đề xuất cho bạn</Text>
             <TouchableOpacity
               onPress={() => handleItemPress("View all Recommended")}
             >
-              <Text style={styles.viewAllText}>View all</Text>
+              <Text style={styles.viewAllText}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
 
@@ -308,9 +315,9 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.sectionContainer}>
           {/* Header Section */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Sale up to 50%</Text>
+            <Text style={styles.sectionTitle}>Giảm giá lên đến 50%</Text>
             <TouchableOpacity onPress={() => handleItemPress("View all Sales")}>
-              <Text style={styles.viewAllText}>View all</Text>
+              <Text style={styles.viewAllText}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
 
@@ -377,7 +384,7 @@ const styles = StyleSheet.create({
     textShadowColor: "#000",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 5,
-    width: 140,
+    width: 200,
   },
   // Nút "SEE MORE" đặt ở góc dưới bên trái của banner
   seeMoreButton: {
