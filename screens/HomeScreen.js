@@ -8,11 +8,10 @@ import {
   ScrollView,
   Image,
   Dimensions,
-  Alert, // Đảm bảo đã import Alert
+  Alert,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import CustomHeader from "../components/CustomHeader";
-import FastFoodScreen from "./FastFoodScreen";
 
 const { width } = Dimensions.get("window");
 
@@ -36,7 +35,7 @@ const banners = [
 ];
 
 const categories = [
-  { id: "1", name: "Rice", icon: "restaurant-outline" }, // nutrition-outline thay thế rice-outline
+  { id: "1", name: "Rice", icon: "restaurant-outline" },
   { id: "2", name: "Healthy", icon: "leaf-outline" },
   { id: "3", name: "Drink", icon: "wine-outline" },
   { id: "4", name: "Fastfood", icon: "fast-food-outline" },
@@ -157,8 +156,9 @@ const HomeScreen = ({ navigation }) => {
 
   // Hàm xử lý khi nhấn vào mục trong Categories, Recommended hoặc Sale
   const handleItemPress = (title) => {
-    if (title === "Fastfood") {
-      navigation.navigate("FastFood"); // Điều hướng đến màn hình FastFood
+    const categoryNames = ["Rice", "Healthy", "Drink", "Fastfood", "Dessert", "Snack"];
+    if (categoryNames.includes(title)) {
+      navigation.navigate("Category", { category: title });
     } else {
       Alert.alert("Thông báo", `Bạn đã nhấn vào: ${title}`);
     }

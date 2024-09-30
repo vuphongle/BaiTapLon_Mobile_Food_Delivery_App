@@ -1,4 +1,3 @@
-// screens/FastFoodScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import { fetchRestaurants } from '../data/restaurants'; // Import hàm fetchRestaurants
 import {
@@ -64,7 +63,8 @@ const sortOptionColors = {
   "Delivery Time": "#43bed8",
 };
 
-const FastFoodScreen = ({ navigation }) => {
+const CategoryScreen = ({ navigation, route }) => {
+  const { category } = route.params; // Nhận tham số category từ navigation
   const [restaurants, setRestaurants] = useState([]); // State cho danh sách nhà hàng
   const [loading, setLoading] = useState(true); // State để hiển thị loading
   const [sortOption, setSortOption] = useState(null);
@@ -315,7 +315,7 @@ const FastFoodScreen = ({ navigation }) => {
         onPress={() => navigation.goBack()}
       >
         <Ionicons name="chevron-back" size={24} color="black" />
-        <Text style={styles.backButtonText}>Fast Food</Text>
+        <Text style={styles.backButtonText}>{category}</Text>
       </TouchableOpacity>
 
       {/* Tùy chọn sắp xếp và lọc */}
@@ -485,7 +485,7 @@ const FastFoodScreen = ({ navigation }) => {
   );
 };
 
-export default FastFoodScreen;
+export default CategoryScreen;
 
 const styles = StyleSheet.create({
   container: {

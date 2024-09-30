@@ -2,7 +2,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen';
-import FastFoodScreen from '../screens/FastFoodScreen';
+import CategoryScreen from '../screens/CategoryScreen';
 import SearchScreen from '../screens/SearchScreen';
 import RestaurantDetailScreen from '../screens/RestaurantDetailScreen'; // Import
 
@@ -17,9 +17,9 @@ const HomeStack = () => {
         options={{ headerShown: false }} 
       />
       <Stack.Screen 
-        name="FastFood" 
-        component={FastFoodScreen} 
-        options={{ title: 'Fast Food', headerShown: false }} 
+        name="Category" 
+        component={CategoryScreen} 
+        options={{headerShown: false }} 
       />
       <Stack.Screen 
         name="Search" 
