@@ -1,5 +1,5 @@
 // screens/HomeScreen.js
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import CustomHeader from "../components/CustomHeader";
+import { fetchRestaurants } from "../data/restaurants"; // Import hàm fetchRestaurants thay vì dữ liệu tĩnh
 
 const { width } = Dimensions.get("window");
 
@@ -43,36 +44,31 @@ const categories = [
   { id: "6", name: "Tráng miệng", icon: "ice-cream-outline" },
 ];
 
-const collections = [
+// Mục bộ sưu tập ban đầu
+const initialCollections = [
   {
     id: "1",
     name: "FREESHIP",
-    image: "https://via.placeholder.com/80/43bed8/FFFFFF?text=FS",
   },
   {
     id: "2",
     name: "DEAL $1",
-    image: "https://via.placeholder.com/80/43bed8/FFFFFF?text=D1",
   },
   {
     id: "3",
     name: "NEAR YOU",
-    image: "https://via.placeholder.com/80/43bed8/FFFFFF?text=NY",
   },
   {
     id: "4",
     name: "POPULAR",
-    image: "https://via.placeholder.com/80/43bed8/FFFFFF?text=PP",
   },
   {
     id: "5",
     name: "NEW ARRIVAL",
-    image: "https://via.placeholder.com/80/43bed8/FFFFFF?text=NA",
   },
   {
     id: "6",
     name: "BEST SELLER",
-    image: "https://via.placeholder.com/80/43bed8/FFFFFF?text=BS",
   },
 ];
 
@@ -152,7 +148,83 @@ const chunkArray = (array, size) => {
 };
 
 const HomeScreen = ({ navigation }) => {
-  const collectionChunks = chunkArray(collections, 2); // Mỗi nhóm có tối đa 2 mục
+  const [collectionsData, setCollectionsData] = useState(initialCollections); // Dữ liệu bộ sưu tập động
+  const [allRestaurants, setAllRestaurants] = useState([]); // Lưu trữ toàn bộ nhà hàng
+  const [loadingRestaurants, setLoadingRestaurants] = useState(true); // State để hiển thị loading khi tải nhà hàng
+
+  useEffect(() => {
+    // Hàm lấy dữ liệu nhà hàng khi component được mount
+    const getRestaurants = async () => {
+      try {
+        const data = await fetchRestaurants();
+        setAllRestaurants(data);
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu nhà hàng:", error);
+      } finally {
+        setLoadingRestaurants(false);
+      }
+    };
+    getRestaurants();
+  }, []);
+
+  useEffect(() => {
+    if (loadingRestaurants) return;
+
+    // Định nghĩa bản đồ thuộc tính cho các bộ sưu tập
+    const collectionAttributeMap = {
+      FREESHIP: "freeship",
+      "NEAR YOU": "nearYou",
+      DEAL: "deal", // Giả sử 'deal' là thuộc tính cho "DEAL $1"
+      POPULAR: "popular",
+      "NEW ARRIVAL": "newArrival",
+      "BEST SELLER": "bestSeller",
+    };
+
+    // Tạo bản sao của bộ sưu tập để chỉnh sửa
+    const updatedCollections = initialCollections.map((collection) => {
+      let attribute = null;
+      // Xác định thuộc tính tương ứng với tên bộ sưu tập
+      if (collection.name.startsWith("DEAL")) {
+        attribute = "deal"; // Ví dụ: "DEAL $1" => "deal"
+      } else {
+        attribute = collectionAttributeMap[collection.name];
+      }
+
+      let selectedRestaurant = null;
+      let image = "https://via.placeholder.com/100"; // Mặc định
+
+      if (attribute && allRestaurants.length > 0) {
+        // Lọc các nhà hàng có thuộc tính tương ứng
+        const matchedRestaurants = allRestaurants.filter(
+          (restaurant) => restaurant[attribute] === true
+        );
+
+        if (matchedRestaurants.length > 0) {
+          // Chọn ngẫu nhiên một nhà hàng từ danh sách phù hợp
+          const randomIndex = Math.floor(Math.random() * matchedRestaurants.length);
+          selectedRestaurant = matchedRestaurants[randomIndex];
+          image = selectedRestaurant.image || "https://via.placeholder.com/100";
+        }
+      }
+
+      return {
+        ...collection,
+        image,
+        restaurant: selectedRestaurant,
+      };
+    });
+
+    setCollectionsData(updatedCollections);
+  }, [loadingRestaurants, allRestaurants]);
+
+  // Helper function để xử lý khi nhấn vào mục bộ sưu tập
+  const handleCollectionPress = (collection) => {
+    if (collection.restaurant) {
+      navigation.navigate("RestaurantDetail", { restaurant: collection.restaurant });
+    } else {
+      Alert.alert("Thông báo", "Không có nhà hàng phù hợp cho mục này.");
+    }
+  };
 
   // Hàm xử lý khi nhấn vào mục trong Categories, Recommended hoặc Sale
   const handleItemPress = (title) => {
@@ -170,6 +242,9 @@ const HomeScreen = ({ navigation }) => {
       Alert.alert("Thông báo", `Bạn đã nhấn vào: ${title}`);
     }
   };
+
+  // Chia collectionsData thành các cặp để hiển thị 2 hàng
+  const collectionPairs = chunkArray(collectionsData, 2);
 
   return (
     <View style={styles.container}>
@@ -195,10 +270,10 @@ const HomeScreen = ({ navigation }) => {
               <View style={styles.bannerTextContainer}>
                 <Text style={styles.bannerText}>{item.title}</Text>
               </View>
-              {/* Nút "SEE MORE" đặt ở góc dưới bên trái */}
+              {/* Nút "XEM THÊM" đặt ở góc dưới bên trái */}
               <TouchableOpacity
                 style={styles.seeMoreButton}
-                onPress={() => handleItemPress("SEE MORE")}
+                onPress={() => handleItemPress("XEM THÊM")}
               >
                 <Text style={styles.seeMoreText}>XEM THÊM</Text>
               </TouchableOpacity>
@@ -245,37 +320,38 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
 
-        {/* Collections */}
+        {/* Bộ sưu tập */}
         <View style={styles.collectionsContainer}>
           {/* Header Collections */}
           <View style={styles.collectionsHeader}>
             <Text style={styles.sectionTitle}>Bộ sưu tập</Text>
-            <TouchableOpacity
-              onPress={() => handleItemPress("View all Collections")}
-            >
+            <TouchableOpacity onPress={() => handleItemPress("View all Collections")}>
               <Text style={styles.viewAllText}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
-          {/* Grid của Collections với ScrollView ngang */}
+
+          {/* Horizontal ScrollView với hai hàng */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {collectionChunks.map((chunk, index) => (
-              <View key={index} style={styles.collectionChunk}>
-                {chunk.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.collectionItem}
-                    onPress={() => handleItemPress(`Bộ sưu tập: ${item.name}`)}
-                  >
-                    <Image
-                      source={{ uri: item.image }}
-                      style={styles.collectionImage}
-                      resizeMode="cover"
-                    />
-                    <Text style={styles.collectionText}>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ))}
+            <View style={styles.collectionsScrollContainer}>
+              {collectionPairs.map((pair, index) => (
+                <View key={index} style={styles.collectionColumn}>
+                  {pair.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.collectionItem}
+                      onPress={() => handleCollectionPress(item)}
+                    >
+                      <Image
+                        source={{ uri: item.image }}
+                        style={styles.collectionImage}
+                        resizeMode="cover"
+                      />
+                      <Text style={styles.collectionText}>{item.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ))}
+            </View>
           </ScrollView>
         </View>
 
@@ -284,9 +360,7 @@ const HomeScreen = ({ navigation }) => {
           {/* Header Section */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Đề xuất cho bạn</Text>
-            <TouchableOpacity
-              onPress={() => handleItemPress("View all Recommended")}
-            >
+            <TouchableOpacity onPress={() => handleItemPress("View all Recommended")}>
               <Text style={styles.viewAllText}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
@@ -369,6 +443,7 @@ const styles = StyleSheet.create({
   bannerImage: {
     width: "100%",
     height: 150,
+    backgroundColor: "#ddd",
   },
   // Container chứa văn bản trên banner
   bannerTextContainer: {
@@ -386,7 +461,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 5,
     width: 200,
   },
-  // Nút "SEE MORE" đặt ở góc dưới bên trái của banner
+  // Nút "XEM THÊM" đặt ở góc dưới bên trái của banner
   seeMoreButton: {
     position: "absolute",
     bottom: 10, // Đặt ở phía dưới cùng
@@ -460,53 +535,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
   },
-  // Collections
+  // Bộ sưu tập
   collectionsContainer: {
     marginBottom: 20,
   },
   collectionsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  collectionsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  collectionChunk: {
-    flexDirection: "column",
-    marginRight: 16,
-  },
-  collectionItem: {
-    flexDirection: "row", // Đặt hình ảnh và văn bản theo hàng ngang
-    alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 10,
-    marginBottom: 10,
-    width: 200, // Chiều rộng mỗi cột
-    borderColor: "#ccc",
-    borderWidth: 1,
-    padding: 10,
-  },
-  collectionImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 10,
-    backgroundColor: "#fff",
-  },
-  collectionText: {
-    color: "black",
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-  // Các phần khác như Recommended và Sale
-  sectionContainer: {
-    marginBottom: 20,
-  },
-  sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -519,6 +552,48 @@ const styles = StyleSheet.create({
   viewAllText: {
     color: "#a4a8b1",
     fontWeight: "bold",
+  },
+  // Container cho ScrollView của Bộ sưu tập
+  collectionsScrollContainer: {
+    flexDirection: "row",
+  },
+  collectionColumn: {
+    flexDirection: "column",
+    marginRight: 16,
+  },
+  collectionItem: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+    width: width / 2.7,
+  },
+  collectionImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 8,
+    marginRight: 10,
+    backgroundColor: "#e0e0e0",
+  },
+  collectionText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  sectionContainer: {
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
   card: {
     width: 120,
@@ -537,6 +612,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 8,
     marginBottom: 10,
+    backgroundColor: "#e0e0e0",
   },
   cardTitle: {
     fontSize: 16,
@@ -565,15 +641,18 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 8,
     marginBottom: 10,
+    backgroundColor: "#e0e0e0",
   },
   saleText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "black",
     marginBottom: 5,
+    textAlign: "center",
   },
   saleRating: {
     fontSize: 14,
     color: "#666",
+    textAlign: "center",
   },
 });
