@@ -247,6 +247,33 @@ const MyOrderScreen = () => {
                   </View>
                 </View>
               ))}
+
+              {/* Kết hợp Phần Mã giảm giá và Phương thức thanh toán */}
+              <View style={styles.optionsContainer}>
+                {/* Phần Mã giảm giá */}
+                <TouchableOpacity
+                  style={styles.optionButton}
+                  onPress={() => setDiscountModalVisible(true)}
+                >
+                  <Ionicons name="pricetag-outline" size={24} color="#3391a4" />
+                  <Text style={styles.optionButtonText}>
+                    {selectedDiscount ? selectedDiscount.code : "Chọn mã giảm giá"}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Phương thức thanh toán */}
+                <TouchableOpacity
+                  style={styles.optionButton}
+                  onPress={() => setPaymentModalVisible(true)}
+                >
+                  <Ionicons name="card-outline" size={24} color="#3391a4" />
+                  <Text style={styles.optionButtonText}>
+                    {selectedPaymentMethod
+                      ? selectedPaymentMethod
+                      : "Chọn phương thức thanh toán"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </>
           ) : (
             <View style={styles.emptyContainer}>
@@ -257,33 +284,7 @@ const MyOrderScreen = () => {
             </View>
           )}
 
-          {/* Phần Mã giảm giá */}
-          <View style={styles.discountContainer}>
-            <TouchableOpacity
-              style={styles.discountButton}
-              onPress={() => setDiscountModalVisible(true)}
-            >
-              <Ionicons name="pricetag-outline" size={24} color="#3391a4" />
-              <Text style={styles.discountButtonText}>
-                {selectedDiscount ? selectedDiscount.code : "Chọn mã giảm giá"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Phương thức thanh toán */}
-          <View style={styles.paymentContainer}>
-            <TouchableOpacity
-              style={styles.paymentButton}
-              onPress={() => setPaymentModalVisible(true)}
-            >
-              <Ionicons name="card-outline" size={24} color="#3391a4" />
-              <Text style={styles.paymentButtonText}>
-                {selectedPaymentMethod
-                  ? selectedPaymentMethod
-                  : "Chọn phương thức thanh toán"}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          {/* Các phần khác như footer được giữ nguyên */}
         </ScrollView>
 
         {/* Footer - Đặt hàng */}
@@ -300,7 +301,7 @@ const MyOrderScreen = () => {
               <Text style={styles.summaryValue}>
                 {selectedDiscount && selectedDiscount.code === "FREESHIP"
                   ? "0 VND"
-                  : formatPrice(calculateShippingFee() + " VND")} 
+                  : formatPrice(calculateShippingFee()) + " VND"} 
               </Text>
             </View>
             {selectedDiscount && selectedDiscount.code !== "FREESHIP" && (
@@ -367,6 +368,7 @@ const MyOrderScreen = () => {
                 <Text style={styles.modalCloseButtonText}>Đóng</Text>
               </TouchableOpacity>
             </View>
+            
           </View>
         </Modal>
 
@@ -435,7 +437,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   title: {
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 25,
@@ -491,49 +493,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
   },
-  discountContainer: {
+  optionsContainer: { // Thêm container mới để chứa cả mã giảm giá và phương thức thanh toán
     padding: 16,
     backgroundColor: "#fff",
     borderRadius: 8,
     elevation: 2,
     marginBottom: 16,
+    gap: 16, // Khoảng cách giữa các phần tử bên trong
   },
-  discountButton: {
+  optionButton: { // Thay đổi từ discountButton và paymentButton thành optionButton
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#5fcee1",
     borderRadius: 8,
     padding: 12,
-    marginTop: 8,
     backgroundColor: "#f0f8fa",
     gap: 10,
   },
-  discountButtonText: {
-    fontSize: 16,
-    color: "#5fcee1",
-    fontWeight: "600",
-    flex: 1,
-  },
-  paymentContainer: {
-    padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    elevation: 2,
-    marginBottom: 16,
-  },
-  paymentButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#5fcee1",
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
-    backgroundColor: "#f0f8fa",
-    gap: 10,
-  },
-  paymentButtonText: {
+  optionButtonText: {
     fontSize: 16,
     color: "#5fcee1",
     fontWeight: "600",
