@@ -1,3 +1,4 @@
+// screens/CategoryScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import { fetchRestaurants } from '../data/restaurants'; // Import hàm fetchRestaurants
 import {
@@ -100,7 +101,7 @@ const CategoryScreen = ({ navigation, route }) => {
 
   // Hàm xử lý khi nhấn vào một nhà hàng
   const handleRestaurantPress = (restaurant) => {
-    navigation.navigate('RestaurantDetailScreen', { restaurant });
+    navigation.navigate('RestaurantDetail', { restaurant });
   };
 
   // Hàm xử lý khi nhấn vào một tùy chọn sắp xếp
@@ -261,8 +262,7 @@ const CategoryScreen = ({ navigation, route }) => {
     <TouchableOpacity
       style={styles.restaurantCard}
       onPress={() => {
-        Alert.alert("Recommended", `Bạn đã chọn nhà hàng: ${item.name}`);
-        navigation.navigate('RestaurantDetailScreen', { restaurant: item });
+        navigation.navigate('RestaurantDetail', { restaurant: item });
       }}
     >
       <Image source={{ uri: item.image }} style={styles.restaurantImage} />
