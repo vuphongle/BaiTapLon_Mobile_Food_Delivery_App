@@ -96,11 +96,11 @@ const SearchScreen = ({ route, navigation }) => {
         case "Giá: Thấp đến Cao":
           results.sort((a, b) => {
             const aPrice = a.dishes.reduce(
-              (sum, dish) => sum + parseFloat(dish.price.replace("$", "")),
+              (sum, dish) => sum + parseFloat(dish.price.replace("$", "").replace(/,/g, "")),
               0
             );
             const bPrice = b.dishes.reduce(
-              (sum, dish) => sum + parseFloat(dish.price.replace("$", "")),
+              (sum, dish) => sum + parseFloat(dish.price.replace("$", "").replace(/,/g, "")),
               0
             );
             return aPrice - bPrice;
@@ -109,11 +109,11 @@ const SearchScreen = ({ route, navigation }) => {
         case "Giá: Cao đến Thấp":
           results.sort((a, b) => {
             const aPrice = a.dishes.reduce(
-              (sum, dish) => sum + parseFloat(dish.price.replace("$", "")),
+              (sum, dish) => sum + parseFloat(dish.price.replace("$", "").replace(/,/g, "")),
               0
             );
             const bPrice = b.dishes.reduce(
-              (sum, dish) => sum + parseFloat(dish.price.replace("$", "")),
+              (sum, dish) => sum + parseFloat(dish.price.replace("$", "").replace(/,/g, "")),
               0
             );
             return bPrice - aPrice;
@@ -167,6 +167,12 @@ const SearchScreen = ({ route, navigation }) => {
     setItemsToShow((prev) => prev + 6); // Tăng số lượng nhà hàng hiển thị
   };
 
+  // Hàm để định dạng giá tiền
+  const formatPrice = (price) => {
+    const number = parseInt(price.replace("$", "").replace(/,/g, ""));
+    return number.toLocaleString("en-US") + " VND";
+  };
+
   // Hàm render cho mỗi nhà hàng
   const renderRestaurant = ({ item }) => {
     let dishesToShow = [];
@@ -177,12 +183,21 @@ const SearchScreen = ({ route, navigation }) => {
       dishesToShow = item.dishes.slice(0, 3);
       remainingDishesCount = item.dishes.length - dishesToShow.length;
     } else if (item.matchedDishes.length > 0) {
-      // Nếu khớp bằng tên món ăn, hiển thị các món ăn khớp và thêm một số món khác
-      const additionalDishes = item.dishes.filter(
-        (dish) => !item.matchedDishes.includes(dish)
-      );
-      dishesToShow = [...item.matchedDishes, ...additionalDishes.slice(0, 3 - item.matchedDishes.length)];
-      remainingDishesCount = item.dishes.length - dishesToShow.length;
+      if (item.matchedDishes.length > 3) {
+        // Nếu có hơn 3 món ăn khớp, chỉ lấy 3 món đầu tiên
+        dishesToShow = item.matchedDishes.slice(0, 3);
+        remainingDishesCount = item.matchedDishes.length - dishesToShow.length;
+      } else {
+        // Nếu có 3 hoặc ít hơn, thêm món ăn bổ sung để đạt 3
+        const additionalDishes = item.dishes.filter(
+          (dish) => !item.matchedDishes.includes(dish)
+        );
+        dishesToShow = [
+          ...item.matchedDishes,
+          ...additionalDishes.slice(0, 3 - item.matchedDishes.length),
+        ];
+        remainingDishesCount = item.dishes.length - dishesToShow.length;
+      }
     }
 
     return (
@@ -249,7 +264,7 @@ const SearchScreen = ({ route, navigation }) => {
                   />
                   <View style={styles.dishInfo}>
                     <Text style={styles.dishName}>{dish.name}</Text>
-                    <Text style={styles.dishPrice}>{dish.price}</Text>
+                    <Text style={styles.dishPrice}>{formatPrice(dish.price)}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
