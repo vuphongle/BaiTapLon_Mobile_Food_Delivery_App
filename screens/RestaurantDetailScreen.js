@@ -2,46 +2,74 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import CustomHeader from '../components/CustomHeader';
 
 const { width } = Dimensions.get('window');
 
 const RestaurantDetailScreen = ({ route, navigation }) => {
   const { restaurant } = route.params;
 
+  // Get unique categories
+  const categories = [...new Set(restaurant.dishes.map(dish => dish.category))];
+
+  const handleAddDish = (dishName) => {
+    Alert.alert('Thêm món', `Bạn đã thêm ${dishName} vào giỏ hàng.`);
+  };
+
   return (
     <View style={styles.container}>
-      {/* CustomHeader với nút quay lại */}
-      <CustomHeader
-        navigation={navigation}
-        showBackButton={true}
-        title={restaurant.name}
-      />
-
-      {/* Nội dung chi tiết nhà hàng */}
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      {/* Fixed Image at the Top */}
+      <View style={styles.imageContainer}>
         <Image
           source={{ uri: restaurant.image }}
           style={styles.restaurantImage}
           resizeMode="cover"
         />
-        <View style={styles.infoContainer}>
-          <Text style={styles.restaurantName}>{restaurant.name}</Text>
-          <Text style={styles.details}>
-            {restaurant.deliveryTime} • ⭐ {restaurant.rating}
-          </Text>
-          <Text style={styles.sectionTitle}>Món ăn</Text>
-          {restaurant.dishes.map((dish, index) => (
-            <View key={index} style={styles.dishContainer}>
-              <Image
-                source={{ uri: dish.image || 'https://via.placeholder.com/100' }}
-                style={styles.dishImage}
-                resizeMode="cover"
-              />
-              <View style={styles.dishInfo}>
-                <Text style={styles.dishName}>{dish.name}</Text>
-                <Text style={styles.dishPrice}>{dish.price}</Text>
-              </View>
+        <View style={styles.overlay}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.infoContainer}>
+            <Text style={styles.restaurantName}>{restaurant.name}</Text>
+            <Text style={styles.details}>
+              {restaurant.deliveryTime} • ⭐ {restaurant.rating}
+            </Text>
+            <Text style={styles.address}>{restaurant.address}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Scrollable Content Below the Image */}
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={styles.sectionContainer}>
+          {categories.map((category, index) => (
+            <View key={index} style={styles.categoryContainer}>
+              <Text style={styles.categoryTitle}>{category}</Text>
+              {restaurant.dishes
+                .filter(dish => dish.category === category)
+                .map((dish, idx) => (
+                  <View key={idx} style={styles.dishContainer}>
+                    <Image
+                      source={{ uri: dish.image || 'https://via.placeholder.com/100' }}
+                      style={styles.dishImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.dishInfoContainer}>
+                      <View style={styles.dishInfo}>
+                        <Text style={styles.dishName}>{dish.name}</Text>
+                        <Text style={styles.dishPrice}>{dish.price}</Text>
+                      </View>
+                      <View style={styles.dishStats}>
+                        <Ionicons name="heart-outline" size={16} color="#e91e63" />
+                        <Text style={styles.statText}>{dish.likes}</Text>
+                        <Ionicons name="cart-outline" size={16} color="#4caf50" style={{ marginLeft: 10 }} />
+                        <Text style={styles.statText}>{dish.sales}</Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity onPress={() => handleAddDish(dish.name)} style={styles.addButton}>
+                      <Ionicons name="add-circle-outline" size={28} color="#4caf50" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
             </View>
           ))}
         </View>
@@ -57,43 +85,73 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f8f8',
   },
-  contentContainer: {
-    padding: 16,
+  imageContainer: {
+    position: 'relative',
   },
   restaurantImage: {
-    width: width - 32,
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 16,
+    width: width,
+    height: 250,
     backgroundColor: '#ddd',
   },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: width,
+    height: 250,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingTop: 40,
+    paddingHorizontal: 16,
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    padding: 8,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 20,
+  },
   infoContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 1,
+    // Additional styling if needed
   },
   restaurantName: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#fff',
   },
   details: {
     fontSize: 16,
-    color: '#666',
-    marginVertical: 8,
+    color: '#fff',
+    marginVertical: 4,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 10,
-    color: '#333',
+  address: {
+    fontSize: 14,
+    color: '#fff',
+    marginTop: 2,
+  },
+  contentContainer: {
+    padding: 16,
+    paddingTop: 0,
+  },
+  sectionContainer: {
+    paddingTop: 16,
+  },
+  categoryContainer: {
+    marginBottom: 24,
+  },
+  categoryTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#555',
   },
   dishContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    elevation: 1,
   },
   dishImage: {
     width: 60,
@@ -101,18 +159,38 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#ddd',
   },
-  dishInfo: {
-    marginLeft: 12,
+  dishInfoContainer: {
     flex: 1,
+    marginLeft: 12,
+    justifyContent: 'center',
+  },
+  dishInfo: {
+    // Changed from row to column to align price to the left
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   dishName: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    flexWrap: 'wrap',
   },
   dishPrice: {
     fontSize: 14,
     color: '#e91e63',
     marginTop: 4,
+  },
+  dishStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  statText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 4,
+  },
+  addButton: {
+    padding: 4,
   },
 });
