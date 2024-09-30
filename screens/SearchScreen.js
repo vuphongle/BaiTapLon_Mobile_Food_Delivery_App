@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import CustomHeader from "../components/CustomHeader";
+import Diacritics from "diacritics"; // Thư viện giúp xử lý tiếng Việt dễ dàng hơn
 
 const { width } = Dimensions.get("window");
 
@@ -47,7 +48,7 @@ const SearchScreen = ({ route, navigation }) => {
     // Tìm kiếm các nhà hàng có món ăn khớp với từ khóa
     let results = allRestaurants.filter((restaurant) =>
       restaurant.dishes.some((dish) =>
-        dish.name.toLowerCase().includes(query.toLowerCase())
+        Diacritics.remove(dish.name.toLowerCase()).includes(Diacritics.remove(query.toLowerCase()))
       )
     );
 
