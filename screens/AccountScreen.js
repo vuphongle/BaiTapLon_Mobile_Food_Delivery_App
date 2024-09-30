@@ -80,10 +80,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    width: 80,
-    height: 100,
-    borderRadius: 40,
-    margin: 5,
+    position: 'relative',
+    top: 7,
+    width: 70,
+    height: 70,
+    borderRadius: 50,
+
   },
   userInfo: {
     marginLeft: 15,
