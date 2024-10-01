@@ -10,6 +10,7 @@ import FavoritesScreen from "./screens/FavoritesScreen";
 import InboxScreen from "./screens/InboxScreen";
 import AccountScreen from "./screens/AccountScreen";
 import OrderConfirmedScreen from "./screens/OrderConfirmedScreen";
+import RatingScreen from "./screens/RatingScreen"; // Import RatingScreen
 import HomeStack from "./navigation/HomeStack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -97,12 +98,17 @@ export default function App() {
           <Stack.Screen
             name="OrderConfirmed"
             component={OrderConfirmedScreen}
-            options={{ headerShown: false }}
+            options={{ headerShown: false }} // Ẩn header
           />
           <Stack.Screen
             name="DeliveryMap"
             component={DeliveryMapScreen}
             options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Rating"
+            component={RatingScreen}
+            options={{ title: "Đánh Giá Món Ăn", headerShown: false }} 
           />
         </Stack.Navigator>
       </NavigationContainer>

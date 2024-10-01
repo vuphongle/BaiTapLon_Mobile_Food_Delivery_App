@@ -20,6 +20,7 @@ const OrderConfirmedScreen = () => {
 
   const [currentStep, setCurrentStep] = useState(1); // Bắt đầu từ bước 1 - Xác nhận đơn hàng
   const [showCancel, setShowCancel] = useState(true); // Quản lý hiển thị nút "Hủy"
+  const [orderDelivered, setOrderDelivered] = useState(false); // Quản lý trạng thái giao hàng
 
   useEffect(() => {
     // Bước 1 -> Bước 2 sau 5 giây
@@ -40,7 +41,8 @@ const OrderConfirmedScreen = () => {
     // Bước 4 -> Bước 5 sau 20 giây
     const timer4 = setTimeout(() => {
       setCurrentStep(5);
-      // Khi bước 5 đạt được, tự động quay lại màn hình này hoặc thực hiện hành động mong muốn
+      setOrderDelivered(true); // Đơn hàng đã được giao
+      // Hiển thị Alert thông báo giao hàng thành công
       Alert.alert(
         "Đơn hàng đã được giao",
         "Đơn hàng của bạn đã được giao thành công.",
@@ -48,7 +50,8 @@ const OrderConfirmedScreen = () => {
           {
             text: "OK",
             onPress: () => {
-              navigation.navigate("OrderConfirmed");
+              // Bạn có thể thực hiện hành động khác ở đây nếu cần
+              // Ví dụ: Để người dùng tự chọn khi nào đánh giá, chúng ta sẽ không điều hướng tự động
             },
           },
         ]
@@ -191,6 +194,10 @@ const OrderConfirmedScreen = () => {
     navigation.navigate("DeliveryMap"); // Sử dụng navigate thay vì replace
   };
 
+  const handleRateOrder = () => {
+    navigation.navigate("Rating"); // Điều hướng đến màn hình đánh giá
+  };
+
   const currentIllustration = getCurrentIllustration();
 
   return (
@@ -235,6 +242,14 @@ const OrderConfirmedScreen = () => {
             <TouchableOpacity style={styles.viewMapButton} onPress={handleViewMap}>
               <Ionicons name="map-outline" size={20} color="#fff" />
               <Text style={styles.viewMapButtonText}>Xem Bản Đồ</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Nút "Đánh Giá Món Ăn" hiển thị khi đã giao hàng */}
+          {orderDelivered && (
+            <TouchableOpacity style={styles.rateButton} onPress={handleRateOrder}>
+              <Ionicons name="star-outline" size={20} color="#fff" />
+              <Text style={styles.rateButtonText}>Đánh Giá Món Ăn</Text>
             </TouchableOpacity>
           )}
 
@@ -285,11 +300,11 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 10, // Điều chỉnh dựa trên SafeArea hoặc platform
     left: 20,
     zIndex: 1,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: "rgba(255,255,255,0.7)",
     borderRadius: 20,
     padding: 5,
   },
@@ -416,6 +431,28 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   viewMapButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  rateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ff9800", // Màu cam cho nút đánh giá
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 10,
+    width: width * 0.95,
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  rateButtonText: {
     color: "#ffffff",
     fontSize: 14,
     fontWeight: "600",
