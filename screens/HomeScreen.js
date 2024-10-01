@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
-    width: width / 2.7,
+    width: "auto",
   },
   collectionImage: {
     width: 70,
