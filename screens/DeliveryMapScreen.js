@@ -1,8 +1,9 @@
 // screens/DeliveryMapScreen.js
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Dimensions, ActivityIndicator, Alert } from "react-native";
+import { View, StyleSheet, Dimensions, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useNavigation } from "@react-navigation/native";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const { width, height } = Dimensions.get("window");
 
@@ -20,7 +21,6 @@ const DeliveryMapScreen = () => {
     // Dưới đây là vị trí giả định
     const fetchDriverLocation = async () => {
       try {
-
         // Vị trí giả định
         const driverLat = 10.825931; // Vĩ độ tài xế
         const driverLng = 106.683839; // Kinh độ tài xế
@@ -44,6 +44,27 @@ const DeliveryMapScreen = () => {
     fetchDriverLocation();
   }, []);
 
+  useEffect(() => {
+    // Giả sử sau khi tải xong bản đồ, bạn muốn tự động quay lại sau khi giao hàng thành công
+    // Ví dụ: Sau 30 giây, tự động quay lại
+    const deliveryCompletionTimer = setTimeout(() => {
+      Alert.alert(
+        "Giao hàng thành công",
+        "Đơn hàng của bạn đã được giao.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              navigation.navigate("OrderConfirmed");
+            },
+          },
+        ]
+      );
+    }, 30000); // 30 giây
+
+    return () => clearTimeout(deliveryCompletionTimer);
+  }, [navigation]);
+
   if (!region) {
     return (
       <View style={styles.loadingContainer}>
@@ -54,6 +75,11 @@ const DeliveryMapScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Custom Back Button */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={24} color="#000" />
+      </TouchableOpacity>
+
       <MapView style={styles.map} region={region}>
         {driverLocation && (
           <Marker
@@ -81,6 +107,15 @@ export default DeliveryMapScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50, // Điều chỉnh dựa trên SafeArea hoặc platform
+    left: 20,
+    zIndex: 1,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 20,
+    padding: 5,
   },
   map: {
     width: width,

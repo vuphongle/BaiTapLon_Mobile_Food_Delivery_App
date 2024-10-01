@@ -25,26 +25,35 @@ const OrderConfirmedScreen = () => {
     // Bước 1 -> Bước 2 sau 5 giây
     const timer1 = setTimeout(() => {
       setCurrentStep(2);
-      // Alert.alert("Cập nhật trạng thái", "Đơn hàng đang tìm tài xế.");
     }, 5000);
 
     // Bước 2 -> Bước 3 sau 10 giây
     const timer2 = setTimeout(() => {
       setCurrentStep(3);
-      // Alert.alert("Cập nhật trạng thái", "Đơn hàng đang được chuẩn bị.");
     }, 10000);
 
     // Bước 3 -> Bước 4 sau 15 giây
     const timer3 = setTimeout(() => {
       setCurrentStep(4);
-      // Alert.alert("Cập nhật trạng thái", "Đơn hàng đang được giao.");
     }, 15000);
 
     // Bước 4 -> Bước 5 sau 20 giây
     const timer4 = setTimeout(() => {
       setCurrentStep(5);
-      // Alert.alert("Cập nhật trạng thái", "Đơn hàng đã được giao.");
-    }, 200000);
+      // Khi bước 5 đạt được, tự động quay lại màn hình này hoặc thực hiện hành động mong muốn
+      Alert.alert(
+        "Đơn hàng đã được giao",
+        "Đơn hàng của bạn đã được giao thành công.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              navigation.navigate("OrderConfirmed");
+            },
+          },
+        ]
+      );
+    }, 20000); // 20 giây
 
     return () => {
       clearTimeout(timer1);
@@ -172,14 +181,14 @@ const OrderConfirmedScreen = () => {
         {
           text: "Có",
           style: "destructive",
-          onPress: () => navigation.navigate("Home"),
+          onPress: () => navigation.navigate("HomeMain"),
         },
       ]
     );
   };
 
   const handleViewMap = () => {
-    navigation.navigate("DeliveryMap");
+    navigation.navigate("DeliveryMap"); // Sử dụng navigate thay vì replace
   };
 
   const currentIllustration = getCurrentIllustration();
@@ -188,6 +197,11 @@ const OrderConfirmedScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContainer} horizontal={false}>
         <View style={styles.container}>
+          {/* Custom Back Button */}
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
+
           {/* Tiêu đề */}
           <Text style={styles.title}>Đơn hàng đã được xác nhận</Text>
 
@@ -269,6 +283,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#f5f5f5",
     width: "100%",
+  },
+  backButton: {
+    position: 'absolute',
+    top: 10, // Điều chỉnh dựa trên SafeArea hoặc platform
+    left: 20,
+    zIndex: 1,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 20,
+    padding: 5,
   },
   title: {
     fontSize: 22,

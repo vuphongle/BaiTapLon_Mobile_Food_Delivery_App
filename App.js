@@ -102,7 +102,7 @@ export default function App() {
           <Stack.Screen
             name="DeliveryMap"
             component={DeliveryMapScreen}
-            options={{ headerShown: false, title: "Vị trí giao hàng" }}
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
       </NavigationContainer>
