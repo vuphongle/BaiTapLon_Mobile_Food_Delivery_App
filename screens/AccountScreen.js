@@ -283,6 +283,7 @@ const styles = StyleSheet.create({
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingTop: 50,
   },
   avatar: {
     width: 80,
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionsContainer: {
-    marginTop: 20,
+    marginTop: 0,
   },
   optionItem: {
     backgroundColor: '#fff',

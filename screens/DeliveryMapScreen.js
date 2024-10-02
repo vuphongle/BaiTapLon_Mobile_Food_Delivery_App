@@ -1,4 +1,5 @@
 // screens/DeliveryMapScreen.js
+
 import React, { useEffect, useState } from "react";
 import { 
   View, 
@@ -23,7 +24,12 @@ const DeliveryMapScreen = () => {
   const route = useRoute();
   
   // Lấy các tham số được truyền từ OrderConfirmedScreen.js
-  const { restaurantName, deliveryTime, deliveryAddress } = route.params || {};
+  const { 
+    restaurantName, 
+    deliveryTime, 
+    deliveryAddress, 
+    driverInfo 
+  } = route.params || {};
 
   const [region, setRegion] = useState(null);
   const [driverLocation, setDriverLocation] = useState(null);
@@ -32,22 +38,25 @@ const DeliveryMapScreen = () => {
     longitude: 106.687154, // Kinh độ địa chỉ người nhận
   });
 
-  // Thông tin tài xế mẫu
-  const [driverInfo, setDriverInfo] = useState({
-    image: "https://via.placeholder.com/100", // URL ảnh mẫu, thay bằng ảnh thực tế sau
+  const driver = driverInfo || {
+    id: "driver123",
+    image: "https://via.placeholder.com/100", // URL ảnh tài xế
     name: "Nguyễn Văn A",
     licensePlate: "29A-12345",
     phoneNumber: "0987654321",
-  });
+    location: {
+      latitude: 10.825931, // Vĩ độ tài xế
+      longitude: 106.683839, // Kinh độ tài xế
+    },
+  };
 
   useEffect(() => {
     // Giả sử bạn nhận được vị trí tài xế từ backend hoặc API
     // Dưới đây là vị trí giả định
-    const fetchDriverLocation = async () => {
+    const fetchDriverLocation = () => {
       try {
-        // Vị trí giả định
-        const driverLat = 10.825931; // Vĩ độ tài xế
-        const driverLng = 106.683839; // Kinh độ tài xế
+        const driverLat = driver.location.latitude;
+        const driverLng = driver.location.longitude;
 
         setDriverLocation({
           latitude: driverLat,
@@ -66,10 +75,10 @@ const DeliveryMapScreen = () => {
     };
 
     fetchDriverLocation();
-  }, []);
+  }, [driver, userLocation]);
 
   const handleCallPress = () => {
-    const phoneNumber = `tel:${driverInfo.phoneNumber}`;
+    const phoneNumber = `tel:${driver.phoneNumber}`;
     Linking.canOpenURL(phoneNumber)
       .then((supported) => {
         if (!supported) {
@@ -84,7 +93,11 @@ const DeliveryMapScreen = () => {
   const handleChatPress = () => {
     navigation.navigate('MainTabs', {
       screen: 'Inbox',
-      params: { driverId: driverInfo.id, driverName: driverInfo.name },
+      params: { 
+        driverId: driver.id, 
+        driverName: driver.name, 
+        driverImage: driver.image 
+      },
     });
   };
 
@@ -159,31 +172,32 @@ const DeliveryMapScreen = () => {
         )}
 
         {/* Thông tin tài xế */}
-        <View style={styles.driverSection}>
-          {/* Đường gạch ngang thay thế cho tiêu đề "Thông tin tài xế:" */}
-          <View style={styles.separator} />
+        {driver && (
+          <View style={styles.driverSection}>
+            <View style={styles.separator} />
 
-          <View style={styles.driverInfo}>
-            <Image 
-              source={{ uri: driverInfo.image }} 
-              style={styles.driverImage} 
-            />
-            <View style={styles.driverDetails}>
-              <Text style={styles.driverName}>{driverInfo.name}</Text>
-              <Text style={styles.driverDetailText}>Biển số xe: {driverInfo.licensePlate}</Text>
-              <Text style={styles.driverDetailText}>Số điện thoại: {driverInfo.phoneNumber}</Text>
-            </View>
-            {/* Thêm các icon gọi điện và chat ở bên phải */}
-            <View style={styles.iconContainer}>
-              <TouchableOpacity style={styles.iconButton} onPress={handleCallPress}>
-                <Ionicons name="call" size={24} color="#2196f3" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={handleChatPress}>
-                <Ionicons name="chatbubbles" size={24} color="#2196f3" />
-              </TouchableOpacity>
+            <View style={styles.driverInfo}>
+              <Image 
+                source={{ uri: driver.image }} 
+                style={styles.driverImage} 
+              />
+              <View style={styles.driverDetails}>
+                <Text style={styles.driverName}>{driver.name}</Text>
+                <Text style={styles.driverDetailText}>Biển số xe: {driver.licensePlate}</Text>
+                <Text style={styles.driverDetailText}>Số điện thoại: {driver.phoneNumber}</Text>
+              </View>
+              {/* Thêm các icon gọi điện và chat ở bên phải */}
+              <View style={styles.iconContainer}>
+                <TouchableOpacity style={styles.iconButton} onPress={handleCallPress}>
+                  <Ionicons name="call" size={24} color="#2196f3" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton} onPress={handleChatPress}>
+                  <Ionicons name="chatbubbles" size={24} color="#2196f3" />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        )}
       </ScrollView>
     </View>
   );

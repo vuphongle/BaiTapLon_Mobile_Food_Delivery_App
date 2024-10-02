@@ -1,4 +1,5 @@
 // screens/InboxScreen.js
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -11,10 +12,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Alert,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { auth, db } from '../firebaseConfig'; // Import auth và db từ cấu hình Firebase
+import { doc, getDoc } from 'firebase/firestore'; // Import các hàm cần thiết từ Firestore
 
 const InboxScreen = () => {
   const route = useRoute();
@@ -24,6 +28,32 @@ const InboxScreen = () => {
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef(null);
   const insets = useSafeAreaInsets(); // Sử dụng hook để lấy safe area insets
+  const [userImage, setUserImage] = useState(''); // Thêm state cho hình ảnh người dùng
+
+  // Lấy hình ảnh người dùng từ Firestore khi màn hình được mount
+  useEffect(() => {
+    const fetchUserImage = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUserImage(userData.image);
+          } else {
+            console.log('Không tìm thấy tài liệu người dùng.');
+          }
+        } else {
+          console.log('Người dùng chưa đăng nhập.');
+        }
+      } catch (error) {
+        console.log('Lỗi khi lấy hình ảnh người dùng:', error);
+        Alert.alert('Lỗi', 'Không thể tải hình ảnh người dùng.');
+      }
+    };
+
+    fetchUserImage();
+  }, []);
 
   // Mock initial messages (có thể thay thế bằng dữ liệu thực tế từ backend)
   useEffect(() => {
@@ -35,10 +65,10 @@ const InboxScreen = () => {
         text: 'Chào bạn! Tôi là tài xế của bạn.',
         sender: 'driver',
         timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      }
+      },
     ];
     setMessages(initialMessages);
-  }, []);  
+  }, []);
 
   // Dữ liệu phản hồi tự động
   const predefinedResponses = {
@@ -77,7 +107,7 @@ const InboxScreen = () => {
         flatListRef.current.scrollToEnd({ animated: true });
       }
     }, 100);
-    
+
     // Kiểm tra và gửi phản hồi tự động nếu có
     if (predefinedResponses[inputText.trim()]) {
       const botResponse = {
@@ -100,12 +130,12 @@ const InboxScreen = () => {
 
   const handleVideoCall = () => {
     // Thêm logic để gọi video (có thể sử dụng các thư viện như react-native-webrtc hoặc tích hợp với dịch vụ khác)
-    alert('Gọi video');
+    Alert.alert('Thông báo', 'Tính năng gọi video chưa được triển khai.');
   };
 
   const handleVoiceCall = () => {
     // Thêm logic để gọi điện thoại
-    alert('Gọi điện thoại');
+    Alert.alert('Thông báo', 'Tính năng gọi điện thoại chưa được triển khai.');
   };
 
   const handleSuggestionPress = (suggestion) => {
@@ -133,7 +163,7 @@ const InboxScreen = () => {
           <Text style={styles.messageTimestamp}>{item.timestamp}</Text>
         </View>
         {!isDriver && (
-          <Image source={{ uri: 'https://via.placeholder.com/40' }} style={styles.messageAvatar} />
+          <Image source={{ uri: userImage || 'https://via.placeholder.com/40' }} style={styles.messageAvatar} />
         )}
       </View>
     );

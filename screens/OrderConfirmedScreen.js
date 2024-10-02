@@ -9,6 +9,7 @@ import {
   Alert,
   Dimensions,
   ScrollView,
+  Image,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -23,6 +24,7 @@ const OrderConfirmedScreen = () => {
   const [currentStep, setCurrentStep] = useState(1); // Bắt đầu từ bước 1 - Xác nhận đơn hàng
   const [showCancel, setShowCancel] = useState(true); // Quản lý hiển thị nút "Hủy"
   const [orderDelivered, setOrderDelivered] = useState(false); // Quản lý trạng thái giao hàng
+  const [driverInfo, setDriverInfo] = useState(null); // Thêm state cho thông tin tài xế
 
   // Lấy thông tin nhà hàng từ đơn hàng
   const restaurant = myOrder.length > 0 ? myOrder[0].restaurant : null;
@@ -31,6 +33,35 @@ const OrderConfirmedScreen = () => {
   const restaurantName = restaurant ? restaurant.name : "Không xác định";
   const deliveryTime = restaurant && restaurant.deliveryTime ? restaurant.deliveryTime : "Không xác định";
   const deliveryAddressFinal = deliveryAddress || (restaurant && restaurant.deliveryAddress) || "Không xác định";
+
+  useEffect(() => {
+    // Giả lập nhận thông tin tài xế từ backend sau khi đơn hàng được xác nhận
+    const fetchDriverInfo = async () => {
+      try {
+        // Đây là thông tin mẫu, bạn nên thay thế bằng dữ liệu thực tế từ backend
+        const fetchedDriverInfo = {
+          id: "driver123",
+          name: "Nguyễn Văn A",
+          image: "https://via.placeholder.com/100",
+          licensePlate: "29A-12345",
+          phoneNumber: "0987654321",
+          location: {
+            latitude: 10.825931, // Vĩ độ tài xế
+            longitude: 106.683839, // Kinh độ tài xế
+          },
+        };
+        // Giả lập thời gian chờ để lấy thông tin tài xế
+        setTimeout(() => {
+          setDriverInfo(fetchedDriverInfo);
+        }, 3000); // 3 giây
+      } catch (error) {
+        console.log("Lỗi khi lấy thông tin tài xế:", error);
+        Alert.alert("Lỗi", "Không thể lấy thông tin tài xế.");
+      }
+    };
+
+    fetchDriverInfo();
+  }, []);
 
   useEffect(() => {
     // Bước 1 -> Bước 2 sau 5 giây
@@ -48,7 +79,7 @@ const OrderConfirmedScreen = () => {
       setCurrentStep(4);
     }, 15000);
 
-    // Bước 4 -> Bước 5 sau 2000 giây
+    // Bước 4 -> Bước 5 sau 200 giây (3 phút 20 giây)
     const timer4 = setTimeout(() => {
       setCurrentStep(5);
       setOrderDelivered(true); // Đơn hàng đã được giao
@@ -67,7 +98,7 @@ const OrderConfirmedScreen = () => {
           },
         ]
       );
-    }, 200000); // 2000 giây
+    }, 200000); // 200 giây (3 phút 20 giây)
 
     return () => {
       clearTimeout(timer1);
@@ -202,11 +233,16 @@ const OrderConfirmedScreen = () => {
   };
 
   const handleViewMap = () => {
-    // Khi điều hướng đến DeliveryMap, truyền các thông tin cần thiết
+    if (!driverInfo) {
+      Alert.alert("Thông tin tài xế", "Chưa có thông tin tài xế để hiển thị bản đồ.");
+      return;
+    }
+    // Khi điều hướng đến DeliveryMap, truyền các thông tin cần thiết bao gồm driverInfo
     navigation.navigate("DeliveryMap", {
       restaurantName,
       deliveryTime,
       deliveryAddress: deliveryAddressFinal,
+      driverInfo, // Truyền thông tin tài xế
     });
   };
 
