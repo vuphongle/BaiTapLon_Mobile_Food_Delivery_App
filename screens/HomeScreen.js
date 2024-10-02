@@ -1,4 +1,5 @@
 // screens/HomeScreen.js
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -9,31 +10,33 @@ import {
   Image,
   Dimensions,
   Alert,
+  ActivityIndicator, // Import ActivityIndicator để hiển thị loading
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import CustomHeader from "../components/CustomHeader";
 import { fetchRestaurants } from "../data/restaurants"; // Import hàm fetchRestaurants thay vì dữ liệu tĩnh
+import { fetchBanners } from "../data/banners"; // Import hàm fetchBanners
 
 const { width } = Dimensions.get("window");
 
-// Dữ liệu cho banners, categories, collections
-const banners = [
-  {
-    id: "1",
-    title: "Join Party $1",
-    image: "https://via.placeholder.com/350x150",
-  },
-  {
-    id: "2",
-    title: "Special Offer",
-    image: "https://via.placeholder.com/350x150/ff7f7f",
-  },
-  {
-    id: "3",
-    title: "New Arrivals",
-    image: "https://via.placeholder.com/350x150/87cefa",
-  },
-];
+// Loại bỏ dữ liệu tĩnh banners
+// const banners = [
+//   {
+//     id: "1",
+//     title: "Join Party $1",
+//     image: "https://via.placeholder.com/350x150",
+//   },
+//   {
+//     id: "2",
+//     title: "Special Offer",
+//     image: "https://via.placeholder.com/350x150/ff7f7f",
+//   },
+//   {
+//     id: "3",
+//     title: "New Arrivals",
+//     image: "https://via.placeholder.com/350x150/87cefa",
+//   },
+// ];
 
 const categories = [
   { id: "1", name: "Thức ăn nhanh", icon: "fast-food-outline" },
@@ -102,6 +105,10 @@ const HomeScreen = ({ navigation }) => {
   const [recommendedItems, setRecommendedItems] = useState([]); // Dữ liệu đề xuất
   const [saleItems, setSaleItems] = useState([]); // Dữ liệu giảm giá
 
+  // State và loading cho banners
+  const [banners, setBanners] = useState([]);
+  const [loadingBanners, setLoadingBanners] = useState(true);
+
   useEffect(() => {
     // Hàm lấy dữ liệu nhà hàng khi component được mount
     const getRestaurants = async () => {
@@ -118,7 +125,22 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (loadingRestaurants) return;
+    // Hàm lấy dữ liệu banners khi component được mount
+    const getBanners = async () => {
+      try {
+        const bannerData = await fetchBanners();
+        setBanners(bannerData);
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu banners:", error);
+      } finally {
+        setLoadingBanners(false);
+      }
+    };
+    getBanners();
+  }, []);
+
+  useEffect(() => {
+    if (loadingRestaurants || loadingBanners) return;
 
     // Định nghĩa bản đồ thuộc tính cho các bộ sưu tập
     const collectionAttributeMap = {
@@ -184,7 +206,7 @@ const HomeScreen = ({ navigation }) => {
       restaurant: restaurant, // Thêm đối tượng nhà hàng
     }));
     setSaleItems(sales);
-  }, [loadingRestaurants, allRestaurants]);
+  }, [loadingRestaurants, loadingBanners, allRestaurants]);
 
   // Helper function để xử lý khi nhấn vào mục bộ sưu tập
   const handleCollectionPress = (collection) => {
@@ -231,33 +253,46 @@ const HomeScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {/* Banner sử dụng ScrollView ngang */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          pagingEnabled
-          style={styles.bannerList}
-        >
-          {banners.map((item) => (
-            <View key={item.id} style={styles.bannerItem}>
-              <Image
-                source={{ uri: item.image }}
-                style={styles.bannerImage}
-                resizeMode="cover"
-              />
-              {/* Container chứa văn bản trên banner */}
-              <View style={styles.bannerTextContainer}>
-                <Text style={styles.bannerText}>{item.title}</Text>
-              </View>
-              {/* Nút "XEM THÊM" đặt ở góc dưới bên trái */}
-              <TouchableOpacity
-                style={styles.seeMoreButton}
-                onPress={() => handleItemPress("XEM THÊM")}
-              >
-                <Text style={styles.seeMoreText}>XEM THÊM</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
+        <View style={styles.bannerList}>
+          {loadingBanners ? (
+            // Hiển thị ActivityIndicator khi đang tải banners
+            <ActivityIndicator size="large" color="#6200ee" />
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              pagingEnabled
+            >
+              {banners.length > 0 ? (
+                banners.map((item) => (
+                  <View key={item.id} style={styles.bannerItem}>
+                    <Image
+                      source={{ uri: item.image }}
+                      style={styles.bannerImage}
+                      resizeMode="cover"
+                    />
+                    {/* Container chứa văn bản trên banner */}
+                    <View style={styles.bannerTextContainer}>
+                      <Text style={styles.bannerText}>{item.title}</Text>
+                    </View>
+                    {/* Nút "XEM THÊM" đặt ở góc dưới bên trái */}
+                    <TouchableOpacity
+                      style={styles.seeMoreButton}
+                      onPress={() => handleItemPress("XEM THÊM")}
+                    >
+                      <Text style={styles.seeMoreText}>XEM THÊM</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              ) : (
+                // Hiển thị placeholder nếu không có banners
+                <View style={styles.noBannersContainer}>
+                  <Text style={styles.noBannersText}>Không có banner nào</Text>
+                </View>
+              )}
+            </ScrollView>
+          )}
+        </View>
 
         {/* Danh mục Icon */}
         <View style={styles.categoryContainer}>
@@ -410,6 +445,7 @@ const styles = StyleSheet.create({
   // Banner sử dụng ScrollView ngang
   bannerList: {
     marginBottom: 20,
+    height: 180, // Đặt chiều cao cố định cho banner để tránh layout shift khi loading
   },
   bannerItem: {
     width: width - 32, // Full width minus padding (16 * 2)
@@ -442,7 +478,7 @@ const styles = StyleSheet.create({
   // Nút "XEM THÊM" đặt ở góc dưới bên trái của banner
   seeMoreButton: {
     position: "absolute",
-    bottom: 10, // Đặt ở phía dưới cùng
+    bottom: 40, // Đặt ở phía dưới cùng
     left: 20, // Đặt ở góc trái
     backgroundColor: "#50ddfb",
     paddingVertical: 5,
@@ -453,6 +489,19 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 14,
+  },
+  // Container khi không có banners
+  noBannersContainer: {
+    width: width - 32,
+    height: 150,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+  },
+  noBannersText: {
+    color: "#a4a8b1",
+    fontSize: 16,
   },
   // Danh mục Icon
   categoryContainer: {
