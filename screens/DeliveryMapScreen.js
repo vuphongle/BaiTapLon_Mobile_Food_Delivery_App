@@ -82,20 +82,10 @@ const DeliveryMapScreen = () => {
   };
 
   const handleChatPress = () => {
-    // Ví dụ: Mở ứng dụng nhắn tin mặc định
-    const smsUrl = `sms:${driverInfo.phoneNumber}`;
-    Linking.canOpenURL(smsUrl)
-      .then((supported) => {
-        if (!supported) {
-          Alert.alert("Lỗi", "Không thể mở ứng dụng nhắn tin.");
-        } else {
-          return Linking.openURL(smsUrl);
-        }
-      })
-      .catch((err) => Alert.alert("Lỗi", "Đã xảy ra lỗi khi mở nhắn tin."));
-    
-    // Hoặc bạn có thể điều hướng đến một màn hình chat trong ứng dụng
-    // navigation.navigate('ChatScreen', { driverId: driverInfo.id });
+    navigation.navigate('MainTabs', {
+      screen: 'Inbox',
+      params: { driverId: driverInfo.id, driverName: driverInfo.name },
+    });
   };
 
   if (!region) {
