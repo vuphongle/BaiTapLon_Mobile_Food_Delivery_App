@@ -42,21 +42,18 @@ const InboxScreen = () => {
 
   // Dữ liệu phản hồi tự động
   const predefinedResponses = {
-    'Hi': 'Chào bạn, tôi có thể giúp gì cho bạn?',
+    'Làm ơn gọi lại cho tôi': 'Tất nhiên, tôi sẽ gọi lại cho bạn ngay.',
     'Hello': 'Xin chào! Bạn cần hỗ trợ gì?',
     'Cảm ơn': 'Không có gì, tôi luôn sẵn sàng giúp đỡ bạn!',
     'Tôi cần hỗ trợ về đơn hàng': 'Bạn vui lòng cung cấp mã đơn hàng để tôi kiểm tra.',
-    'Làm ơn gọi lại cho tôi': 'Tất nhiên, tôi sẽ gọi lại cho bạn ngay.',
-    // Thêm các cặp câu hỏi - phản hồi khác ở đây
   };
 
   // Dữ liệu gợi ý tin nhắn
   const messageSuggestions = [
-    'Hi',
+    'Làm ơn gọi lại cho tôi',
     'Hello',
     'Cảm ơn',
     'Tôi cần hỗ trợ về đơn hàng',
-    'Làm ơn gọi lại cho tôi',
     // Thêm các gợi ý khác ở đây
   ];
 
@@ -95,7 +92,7 @@ const InboxScreen = () => {
         if (flatListRef.current) {
           flatListRef.current.scrollToEnd({ animated: true });
         }
-      }, 500); // Thời gian trễ để giả lập phản hồi từ tài xế
+      }, 1000); // Thời gian trễ để giả lập phản hồi từ tài xế
     }
 
     // Ở đây bạn có thể thêm logic để gửi tin nhắn đến backend hoặc tài xế
@@ -230,7 +227,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
-    paddingTop: 25,
+    paddingTop: 55,
   },
   driverImage: {
     width: 60,
