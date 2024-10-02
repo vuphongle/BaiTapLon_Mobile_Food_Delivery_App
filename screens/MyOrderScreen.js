@@ -24,11 +24,12 @@ const MyOrderScreen = () => {
     increaseQuantity,
     decreaseQuantity,
     applyDiscount, // Giả sử bạn có hàm applyDiscount trong context
+    deliveryAddress,
+    setDeliveryAddress,
   } = useContext(OrderContext);
   const navigation = useNavigation(); // Sử dụng hook để truy cập navigation
 
-  // State cho địa chỉ giao hàng, mã giảm giá, và phương thức thanh toán
-  const [deliveryAddress, setDeliveryAddress] = useState("");
+  // State cho mã giảm giá và phương thức thanh toán
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [selectedDiscount, setSelectedDiscount] = useState(null);
 

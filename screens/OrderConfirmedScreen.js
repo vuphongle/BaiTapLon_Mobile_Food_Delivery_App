@@ -1,5 +1,5 @@
 // screens/OrderConfirmedScreen.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -12,15 +12,25 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
+import { OrderContext } from "../context/OrderContext"; // Import OrderContext
 
 const { width } = Dimensions.get("window");
 
 const OrderConfirmedScreen = () => {
   const navigation = useNavigation();
+  const { myOrder, deliveryAddress } = useContext(OrderContext); // Lấy thông tin đơn hàng và địa chỉ giao hàng từ OrderContext
 
   const [currentStep, setCurrentStep] = useState(1); // Bắt đầu từ bước 1 - Xác nhận đơn hàng
   const [showCancel, setShowCancel] = useState(true); // Quản lý hiển thị nút "Hủy"
   const [orderDelivered, setOrderDelivered] = useState(false); // Quản lý trạng thái giao hàng
+
+  // Lấy thông tin nhà hàng từ đơn hàng
+  const restaurant = myOrder.length > 0 ? myOrder[0].restaurant : null;
+
+  // Thông tin nhà hàng và giao hàng
+  const restaurantName = restaurant ? restaurant.name : "Không xác định";
+  const deliveryTime = restaurant && restaurant.deliveryTime ? restaurant.deliveryTime : "Không xác định";
+  const deliveryAddressFinal = deliveryAddress || (restaurant && restaurant.deliveryAddress) || "Không xác định";
 
   useEffect(() => {
     // Bước 1 -> Bước 2 sau 5 giây
@@ -38,7 +48,7 @@ const OrderConfirmedScreen = () => {
       setCurrentStep(4);
     }, 15000);
 
-    // Bước 4 -> Bước 5 sau 20 giây
+    // Bước 4 -> Bước 5 sau 2000 giây
     const timer4 = setTimeout(() => {
       setCurrentStep(5);
       setOrderDelivered(true); // Đơn hàng đã được giao
@@ -52,11 +62,12 @@ const OrderConfirmedScreen = () => {
             onPress: () => {
               // Bạn có thể thực hiện hành động khác ở đây nếu cần
               // Ví dụ: Để người dùng tự chọn khi nào đánh giá, chúng ta sẽ không điều hướng tự động
+              navigation.navigate("Rating");
             },
           },
         ]
       );
-    }, 20000); // 20 giây
+    }, 200000); // 2000 giây
 
     return () => {
       clearTimeout(timer1);
@@ -184,14 +195,19 @@ const OrderConfirmedScreen = () => {
         {
           text: "Có",
           style: "destructive",
-          onPress: () => navigation.navigate("HomeMain"),
+          onPress: () => navigation.navigate("MyOrder"),
         },
       ]
     );
   };
 
   const handleViewMap = () => {
-    navigation.navigate("DeliveryMap"); // Sử dụng navigate thay vì replace
+    // Khi điều hướng đến DeliveryMap, truyền các thông tin cần thiết
+    navigation.navigate("DeliveryMap", {
+      restaurantName,
+      deliveryTime,
+      deliveryAddress: deliveryAddressFinal,
+    });
   };
 
   const handleRateOrder = () => {

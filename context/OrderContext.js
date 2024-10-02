@@ -6,6 +6,7 @@ export const OrderContext = createContext();
 
 export const OrderProvider = ({ children }) => {
   const [myOrder, setMyOrder] = useState([]);
+  const [deliveryAddress, setDeliveryAddress] = useState("");
 
   const addDishToOrder = (newDish, restaurant) => {
     if (myOrder.length === 0 || myOrder[0].restaurantId === restaurant.id) {
@@ -100,6 +101,7 @@ export const OrderProvider = ({ children }) => {
 
   const clearOrder = () => {
     setMyOrder([]);
+    setDeliveryAddress(""); // Xóa địa chỉ giao hàng khi xóa đơn hàng
   };
 
   return (
@@ -109,7 +111,9 @@ export const OrderProvider = ({ children }) => {
       removeDishFromOrder, 
       clearOrder, 
       increaseQuantity, 
-      decreaseQuantity 
+      decreaseQuantity,
+      deliveryAddress,
+      setDeliveryAddress,
     }}>
       {children}
     </OrderContext.Provider>
