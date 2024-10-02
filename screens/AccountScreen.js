@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { useNavigation ,CommonActions } from '@react-navigation/native'; // Import điều hướng
+import { useNavigation } from '@react-navigation/native'; // Import điều hướng
 
 const AccountScreen = () => {
   const navigation = useNavigation(); // Lấy đối tượng điều hướng
@@ -12,8 +12,8 @@ const AccountScreen = () => {
   };
   
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
+    <View style={styles.container}>
+      {/* Header cố định */}
       <View style={styles.header}>
         <Image 
           style={styles.avatar} 
@@ -29,32 +29,34 @@ const AccountScreen = () => {
         </View>
       </View>
 
-      {/* Silver Badge */}
+      {/* Silver Badge cố định */}
       <View style={styles.badge}>
         <Text style={styles.badgeText}>SILVER</Text>
       </View>
 
-      {/* Account Options */}
-      <View style={styles.optionsContainer}>
-        <OptionItem title="Quản lý chi tiêu" isNew={true} />
-        <OptionItem title="Ví trả sau" isNew={true} />
-        <OptionItem title="Liên kết tài khoản" />
-        <OptionItem title="Khuyến mại" />
-        <OptionItem title="Gói tiết kiệm" />
-        <OptionItem title="Giới thiệu & Nhận ưu đãi" />
-        <OptionItem title="Thanh toán" />
-        <OptionItem title="Mở tài khoản Doanh nghiệp" />
-        <OptionItem title="Hộp thư" />
-        <OptionItem title="Hỗ trợ" />
-        <OptionItem title="Cài đặt" />
-        <OptionItem title="Điều khoản & Chính sách" />
-        {/* Nút Đăng xuất */}
-        <TouchableOpacity onPress={handleLogout}>
-          <OptionItem title="Đăng xuất" onPress={handleLogout} />
-         
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      {/* Nội dung cuộn */}
+      <ScrollView style={styles.scrollContainer}>
+        {/* Account Options */}
+        <View style={styles.optionsContainer}>
+          <OptionItem title="Quản lý chi tiêu" isNew={true} />
+          <OptionItem title="Ví trả sau" isNew={true} />
+          <OptionItem title="Liên kết tài khoản" />
+          <OptionItem title="Khuyến mại" />
+          <OptionItem title="Gói tiết kiệm" />
+          <OptionItem title="Giới thiệu & Nhận ưu đãi" />
+          <OptionItem title="Thanh toán" />
+          <OptionItem title="Mở tài khoản Doanh nghiệp" />
+          <OptionItem title="Hộp thư" />
+          <OptionItem title="Hỗ trợ" />
+          <OptionItem title="Cài đặt" />
+          <OptionItem title="Điều khoản & Chính sách" />
+          {/* Nút Đăng xuất */}
+          <TouchableOpacity onPress={handleLogout}>
+            <OptionItem title="Đăng xuất" onPress={handleLogout} />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -117,6 +119,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+  },
+  scrollContainer: {
+    flex: 1,
   },
   optionsContainer: {
     marginTop: 20,
