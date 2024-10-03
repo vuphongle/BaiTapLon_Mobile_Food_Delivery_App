@@ -238,6 +238,13 @@ const AccountScreen = () => {
         <View style={styles.optionsContainer}>
           <OptionItem title="Quản lý chi tiêu" isNew={true} />
           <OptionItem title="Ví trả sau" isNew={true} />
+          
+          {/* Thay đổi navigation sang 'OrderHistory' */}
+          <OptionItem 
+            title="Lịch sử đơn hàng" 
+            onPress={() => navigation.navigate('OrderHistory')} 
+          />
+
           <OptionItem title="Liên kết tài khoản" />
           <OptionItem title="Khuyến mại" />
           <OptionItem title="Gói tiết kiệm" />
@@ -248,6 +255,7 @@ const AccountScreen = () => {
           <OptionItem title="Hỗ trợ" />
           <OptionItem title="Cài đặt" />
           <OptionItem title="Điều khoản & Chính sách" />
+          
           {/* Nút Đăng xuất */}
           <TouchableOpacity onPress={handleLogout}>
             <OptionItem title="Đăng xuất" onPress={handleLogout} />

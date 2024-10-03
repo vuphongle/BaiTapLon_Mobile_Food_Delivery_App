@@ -1,6 +1,8 @@
 // context/OrderContext.js
 import React, { createContext, useState } from 'react';
 import { Alert } from 'react-native';
+import { db, auth } from '../firebaseConfig'; // Import db và auth từ firebaseConfig
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 export const OrderContext = createContext();
 
@@ -104,6 +106,55 @@ export const OrderProvider = ({ children }) => {
     setDeliveryAddress(""); // Xóa địa chỉ giao hàng khi xóa đơn hàng
   };
 
+  const placeOrder = async (paymentMethod, discount, totalAmount) => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("Lỗi", "Không tìm thấy người dùng đăng nhập.");
+      return null;
+    }
+
+    if (myOrder.length === 0) {
+      Alert.alert("Lỗi", "Giỏ hàng của bạn đang trống.");
+      return null;
+    }
+
+    const orderData = {
+      userId: user.uid,
+      orderDate: Timestamp.now(),
+      items: myOrder.map(dish => ({
+        productId: dish.id,
+        productName: dish.name,
+        quantity: dish.quantity,
+        price: dish.price,
+      })),
+      totalAmount: totalAmount,
+      deliveryAddress: deliveryAddress,
+      paymentMethod: paymentMethod,
+      discount: discount ? {
+        code: discount.code,
+        discount: discount.discount,
+      } : null,
+      status: "Confirmed",
+      driverInfo: null,
+      restaurantInfo: {
+        id: myOrder[0].restaurant.id,
+        name: myOrder[0].restaurant.name,
+        address: myOrder[0].restaurant.address,
+      },
+    };
+
+    try {
+      const docRef = await addDoc(collection(db, "orders"), orderData);
+      Alert.alert("Thành công", "Đơn hàng đã được đặt thành công!");
+      clearOrder();
+      return docRef.id;
+    } catch (error) {
+      console.error("Error placing order: ", error);
+      Alert.alert("Lỗi", "Có lỗi xảy ra khi đặt đơn hàng.");
+      return null;
+    }
+  };
+
   return (
     <OrderContext.Provider value={{ 
       myOrder, 
@@ -114,6 +165,7 @@ export const OrderProvider = ({ children }) => {
       decreaseQuantity,
       deliveryAddress,
       setDeliveryAddress,
+      placeOrder,
     }}>
       {children}
     </OrderContext.Provider>

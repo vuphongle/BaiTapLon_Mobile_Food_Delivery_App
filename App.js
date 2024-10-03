@@ -6,6 +6,7 @@ import LoginScreen from "./screens/LoginScreen";
 import GoogleLoginScreen from "./screens/GoogleLoginScreen";
 import PhoneLoginScreen from "./screens/PhoneLoginScreen";
 import MyOrderScreen from "./screens/MyOrderScreen";
+import OrderHistoryScreen from "./screens/OrderHistoryScreen"; // Import OrderHistoryScreen
 import FavoritesScreen from "./screens/FavoritesScreen";
 import InboxScreen from "./screens/InboxScreen";
 import AccountScreen from "./screens/AccountScreen";
@@ -109,6 +110,11 @@ export default function App() {
             name="Rating"
             component={RatingScreen}
             options={{ title: "Đánh Giá Món Ăn", headerShown: false }} 
+          />
+          <Stack.Screen
+            name="OrderHistory"
+            component={OrderHistoryScreen}
+            options={{ title: "Lịch sử đơn hàng" }} // Bạn có thể tùy chỉnh các tùy chọn khác
           />
         </Stack.Navigator>
       </NavigationContainer>
