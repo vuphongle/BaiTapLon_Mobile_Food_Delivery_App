@@ -23,7 +23,6 @@ const DeliveryMapScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   
-  // Lấy các tham số được truyền từ OrderConfirmedScreen.js
   const { 
     restaurantName, 
     deliveryTime, 
@@ -40,19 +39,17 @@ const DeliveryMapScreen = () => {
 
   const driver = driverInfo || {
     id: "driver123",
-    image: "https://via.placeholder.com/100", // URL ảnh tài xế
+    image: "https://via.placeholder.com/100",
     name: "Nguyễn Văn A",
     licensePlate: "29A-12345",
     phoneNumber: "0987654321",
     location: {
-      latitude: 10.825931, // Vĩ độ tài xế
-      longitude: 106.683839, // Kinh độ tài xế
+      latitude: 10.825931,
+      longitude: 106.683839,
     },
   };
 
   useEffect(() => {
-    // Giả sử bạn nhận được vị trí tài xế từ backend hoặc API
-    // Dưới đây là vị trí giả định
     const fetchDriverLocation = () => {
       try {
         const driverLat = driver.location.latitude;
@@ -211,7 +208,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 50, // Điều chỉnh dựa trên SafeArea hoặc platform
+    top: 50,
     left: 20,
     zIndex: 1,
     backgroundColor: 'rgba(255,255,255,0.7)',
@@ -220,7 +217,7 @@ const styles = StyleSheet.create({
   },
   map: {
     width: width,
-    height: height * 0.6, // Chiếm khoảng 60% chiều cao màn hình
+    height: height * 0.6,
   },
   loadingContainer: {
     flex: 1,
@@ -235,7 +232,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: width,
-    maxHeight: height * 0.4, // Chiếm tối đa 40% chiều cao màn hình
+    maxHeight: height * 0.4,
   },
   infoSection: {
     marginBottom: 12,

@@ -23,9 +23,9 @@ const MyOrderScreen = () => {
     clearOrder,
     increaseQuantity,
     decreaseQuantity,
-    applyDiscount, // Giả sử bạn có hàm applyDiscount trong context
     deliveryAddress,
     setDeliveryAddress,
+    placeOrder,
   } = useContext(OrderContext);
   const navigation = useNavigation(); // Sử dụng hook để truy cập navigation
 
@@ -105,7 +105,7 @@ const MyOrderScreen = () => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!deliveryAddress) {
       Alert.alert("Lỗi", "Vui lòng nhập địa chỉ giao hàng.");
       return;
@@ -116,15 +116,22 @@ const MyOrderScreen = () => {
       return;
     }
 
-    Alert.alert("Đặt hàng thành công", "Đơn hàng của bạn đã được gửi đi!", [
-      {
-        text: "OK",
-        onPress: () => {
-          // Không clearOrder ngay, để giữ thông tin đơn hàng trên màn hình OrderConfirmed
-          navigation.navigate("OrderConfirmed"); // Điều hướng đến màn hình mới
+    // Save order to Firestore
+    const orderId = await placeOrder(
+      selectedPaymentMethod,
+      selectedDiscount,
+      getTotalPrice()
+    );
+    if (orderId) {
+      Alert.alert("Đặt hàng thành công", "Đơn hàng của bạn đã được gửi đi!", [
+        {
+          text: "OK",
+          onPress: () => {
+            navigation.navigate("OrderConfirmed", { orderId });
+          },
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   const handleSelectDiscount = (discount) => {
@@ -263,7 +270,9 @@ const MyOrderScreen = () => {
                   <Ionicons name="pricetag-outline" size={24} color="#3391a4" />
                   <Text style={styles.optionButtonText}>
                     {selectedDiscount
-                      ? selectedDiscount.code
+                      ? selectedDiscount.code === "FREESHIP"
+                        ? "Miễn phí vận chuyển"
+                        : selectedDiscount.code
                       : "Chọn mã giảm giá"}
                   </Text>
                 </TouchableOpacity>
@@ -431,8 +440,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 0,
     paddingTop: 0,
-    marginTop: -50,
-    paddingBottom: 0, // Để phần footer không bị che khuất
+    paddingBottom: 0, // Ensure footer is not overlapped
   },
   header: {
     marginBottom: 8,
@@ -466,7 +474,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginBottom: 16, // Khoảng cách giữa ScrollView và Footer
+    marginBottom: 16, // Space between ScrollView and Footer
     paddingHorizontal: 16,
   },
   deliveryContainer: {
@@ -501,16 +509,16 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   optionsContainer: {
-    // Thêm container mới để chứa cả mã giảm giá và phương thức thanh toán
+    // New container to hold both discount and payment options
     padding: 16,
     backgroundColor: "#fff",
     borderRadius: 8,
     elevation: 2,
     marginBottom: 16,
-    gap: 16, // Khoảng cách giữa các phần tử bên trong
+    gap: 16, // Space between inner elements
   },
   optionButton: {
-    // Thay đổi từ discountButton và paymentButton thành optionButton
+    // Unified styling for discount and payment buttons
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,

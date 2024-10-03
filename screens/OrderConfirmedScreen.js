@@ -1,5 +1,5 @@
 // screens/OrderConfirmedScreen.js
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,16 +10,22 @@ import {
   Dimensions,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { useNavigation } from "@react-navigation/native";
-import { OrderContext } from "../context/OrderContext"; // Import OrderContext
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { db, auth } from "../firebaseConfig"; // Import db và auth từ firebaseConfig
+import { doc, getDoc, updateDoc, onSnapshot, Timestamp } from "firebase/firestore";
 
 const { width } = Dimensions.get("window");
 
 const OrderConfirmedScreen = () => {
   const navigation = useNavigation();
-  const { myOrder, deliveryAddress } = useContext(OrderContext); // Lấy thông tin đơn hàng và địa chỉ giao hàng từ OrderContext
+  const route = useRoute();
+  const { orderId } = route.params || {}; // Nhận orderId qua navigation params
+
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [currentStep, setCurrentStep] = useState(1); // Bắt đầu từ bước 1 - Xác nhận đơn hàng
   const [showCancel, setShowCancel] = useState(true); // Quản lý hiển thị nút "Hủy"
@@ -27,96 +33,164 @@ const OrderConfirmedScreen = () => {
   const [driverInfo, setDriverInfo] = useState(null); // Thêm state cho thông tin tài xế
 
   // Lấy thông tin nhà hàng từ đơn hàng
-  const restaurant = myOrder.length > 0 ? myOrder[0].restaurant : null;
+  const restaurant = order?.restaurantInfo || null;
 
   // Thông tin nhà hàng và giao hàng
   const restaurantName = restaurant ? restaurant.name : "Không xác định";
-  const deliveryTime = restaurant && restaurant.deliveryTime ? restaurant.deliveryTime : "Không xác định";
-  const deliveryAddressFinal = deliveryAddress || (restaurant && restaurant.deliveryAddress) || "Không xác định";
+  const deliveryTime = order?.deliveryTime || "Không xác định";
+  const deliveryAddressFinal = order?.deliveryAddress || (restaurant && restaurant.address) || "Không xác định";
 
   useEffect(() => {
-    // Giả lập nhận thông tin tài xế từ backend sau khi đơn hàng được xác nhận
-    const fetchDriverInfo = async () => {
+    let unsubscribe;
+
+    const fetchOrderDetails = async () => {
       try {
-        // Đây là thông tin mẫu, bạn nên thay thế bằng dữ liệu thực tế từ backend
-        const fetchedDriverInfo = {
-          id: "driver123",
-          name: "Nguyễn Văn A",
-          image: "https://firebasestorage.googleapis.com/v0/b/fooddeliverypt-191e4.appspot.com/o/Users%2Favtdefault.png?alt=media&token=d22b7ad6-2dee-4305-891f-7a9d89c5d60f",
-          licensePlate: "29A-12345",
-          phoneNumber: "0987654321",
-          location: {
-            latitude: 10.825931, // Vĩ độ tài xế
-            longitude: 106.683839, // Kinh độ tài xế
-          },
-        };
-        // Giả lập thời gian chờ để lấy thông tin tài xế
-        setTimeout(() => {
-          setDriverInfo(fetchedDriverInfo);
-        }, 3000); // 3 giây
+        if (orderId) {
+          const orderRef = doc(db, "orders", orderId);
+          // Sử dụng onSnapshot để lắng nghe cập nhật thời gian thực
+          unsubscribe = onSnapshot(orderRef, (docSnap) => {
+            if (docSnap.exists()) {
+              const orderData = { id: docSnap.id, ...docSnap.data() };
+              setOrder(orderData);
+              // Cập nhật currentStep dựa trên order.status
+              updateCurrentStep(orderData.status);
+            } else {
+              Alert.alert("Lỗi", "Không tìm thấy đơn hàng.");
+              navigation.goBack();
+            }
+          });
+        } else {
+          Alert.alert("Lỗi", "Không tìm thấy đơn hàng để hiển thị.");
+          navigation.goBack();
+        }
       } catch (error) {
-        console.log("Lỗi khi lấy thông tin tài xế:", error);
-        Alert.alert("Lỗi", "Không thể lấy thông tin tài xế.");
+        console.error("Lỗi khi lấy thông tin đơn hàng:", error);
+        Alert.alert("Lỗi", "Có lỗi xảy ra khi lấy thông tin đơn hàng.");
+        navigation.goBack();
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchDriverInfo();
-  }, []);
-
-  useEffect(() => {
-    // Bước 1 -> Bước 2 sau 5 giây
-    const timer1 = setTimeout(() => {
-      setCurrentStep(2);
-    }, 5000);
-
-    // Bước 2 -> Bước 3 sau 10 giây
-    const timer2 = setTimeout(() => {
-      setCurrentStep(3);
-    }, 10000);
-
-    // Bước 3 -> Bước 4 sau 15 giây
-    const timer3 = setTimeout(() => {
-      setCurrentStep(4);
-    }, 15000);
-
-    // Bước 4 -> Bước 5 sau 200 giây (3 phút 20 giây)
-    const timer4 = setTimeout(() => {
-      setCurrentStep(5);
-      setOrderDelivered(true); // Đơn hàng đã được giao
-      // Hiển thị Alert thông báo giao hàng thành công
-      Alert.alert(
-        "Đơn hàng đã được giao",
-        "Đơn hàng của bạn đã được giao thành công.",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              // Bạn có thể thực hiện hành động khác ở đây nếu cần
-              // Ví dụ: Để người dùng tự chọn khi nào đánh giá, chúng ta sẽ không điều hướng tự động
-              navigation.navigate("Rating");
-            },
-          },
-        ]
-      );
-    }, 200000); // 200 giây (3 phút 20 giây)
+    fetchOrderDetails();
 
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
+      if (unsubscribe) unsubscribe();
     };
-  }, []);
+  }, [orderId]);
 
-  // Khi currentStep thay đổi từ 1 sang 2, sau 1 giây ẩn nút "Hủy"
+  // Hàm để ánh xạ trạng thái đơn hàng tới currentStep
+  const updateCurrentStep = (status) => {
+    switch (status) {
+      case "Confirmed":
+        setCurrentStep(1);
+        break;
+      case "DriverAssigned":
+        setCurrentStep(2);
+        break;
+      case "Preparing":
+        setCurrentStep(3);
+        break;
+      case "Delivering":
+        setCurrentStep(4);
+        break;
+      case "Delivered":
+        setCurrentStep(5);
+        setOrderDelivered(true);
+        break;
+      case "Cancelled":
+        setCurrentStep(0); // Không hiển thị các bước nếu đơn hàng bị hủy
+        break;
+      default:
+        setCurrentStep(1);
+    }
+  };
+
   useEffect(() => {
-    if (currentStep > 1 && showCancel) {
+    if (order) {
+      // Nếu đơn hàng đang trong trạng thái giao hàng hoặc đã giao hàng, lấy thông tin tài xế
+      if (order.status === "Delivering" || order.status === "Delivered") {
+        fetchDriverInfo(order.driverInfo);
+      }
+    }
+  }, [order]);
+
+  const fetchDriverInfo = async (driverId) => {
+    try {
+      if (driverId) {
+        const driverRef = doc(db, "drivers", driverId);
+        const driverSnap = await getDoc(driverRef);
+        if (driverSnap.exists()) {
+          setDriverInfo(driverSnap.data());
+        } else {
+          console.log("Không tìm thấy thông tin tài xế!");
+        }
+      }
+    } catch (error) {
+      console.log("Lỗi khi lấy thông tin tài xế:", error);
+      Alert.alert("Lỗi", "Không thể lấy thông tin tài xế.");
+    }
+  };
+
+  // Hàm cập nhật trạng thái đơn hàng theo timer
+  const handleStatusTransition = async () => {
+    try {
+      if (currentStep < 5) {
+        const newStatus = getStatusByStep(currentStep + 1);
+        const orderRef = doc(db, "orders", order.id);
+        await updateDoc(orderRef, {
+          status: newStatus,
+          orderDate: newStatus === "Confirmed" ? Timestamp.now() : order.orderDate,
+        });
+        setCurrentStep(currentStep + 1);
+      }
+    } catch (error) {
+      console.log("Lỗi khi cập nhật trạng thái đơn hàng:", error);
+      Alert.alert("Lỗi", "Không thể cập nhật trạng thái đơn hàng.");
+    }
+  };
+
+  const getStatusByStep = (step) => {
+    switch (step) {
+      case 1:
+        return "Confirmed";
+      case 2:
+        return "DriverAssigned";
+      case 3:
+        return "Preparing";
+      case 4:
+        return "Delivering";
+      case 5:
+        return "Delivered";
+      default:
+        return "Confirmed";
+    }
+  };
+
+  useEffect(() => {
+    if (order && currentStep > 0 && currentStep < 5) {
+      // Thiết lập timer cho chuyển trạng thái
       const timer = setTimeout(() => {
-        setShowCancel(false);
-      }, 1000); // 1 giây
+        handleStatusTransition();
+      }, getTimerByStep(currentStep));
       return () => clearTimeout(timer);
     }
-  }, [currentStep, showCancel]);
+  }, [order, currentStep]);
+
+  const getTimerByStep = (step) => {
+    switch (step) {
+      case 1:
+        return 5000; // 5 giây
+      case 2:
+        return 10000; // 10 giây
+      case 3:
+        return 15000; // 15 giây
+      case 4:
+        return 20000; // 200 giây (3 phút 20 giây)
+      default:
+        return 5000;
+    }
+  };
 
   const steps = [
     { title: "Xác nhận" },
@@ -226,7 +300,20 @@ const OrderConfirmedScreen = () => {
         {
           text: "Có",
           style: "destructive",
-          onPress: () => navigation.navigate("MyOrder"),
+          onPress: async () => {
+            try {
+              // Cập nhật trạng thái đơn hàng trong Firestore
+              const orderRef = doc(db, "orders", order.id);
+              await updateDoc(orderRef, {
+                status: "Cancelled",
+              });
+              Alert.alert("Thành công", "Đơn hàng đã được hủy.");
+              navigation.navigate("MyOrder");
+            } catch (error) {
+              console.log("Lỗi khi hủy đơn hàng:", error);
+              Alert.alert("Lỗi", "Không thể hủy đơn hàng.");
+            }
+          },
         },
       ]
     );
@@ -247,20 +334,36 @@ const OrderConfirmedScreen = () => {
   };
 
   const handleRateOrder = () => {
-    navigation.navigate("Rating"); // Điều hướng đến màn hình đánh giá
+    navigation.navigate("Rating", { orderId: order.id }); // Điều hướng đến màn hình đánh giá với orderId
   };
 
   const currentIllustration = getCurrentIllustration();
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#43bed8" />
+          <Text>Đang tải thông tin đơn hàng...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!order) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <Text>Không tìm thấy đơn hàng.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContainer} horizontal={false}>
         <View style={styles.container}>
-          {/* Custom Back Button */}
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
-          </TouchableOpacity>
-
           {/* Tiêu đề */}
           <Text style={styles.title}>Đơn hàng đã được xác nhận</Text>
 
@@ -290,7 +393,7 @@ const OrderConfirmedScreen = () => {
           </TouchableOpacity>
 
           {/* Nút "Xem Bản Đồ" hiển thị khi đang giao hàng */}
-          {currentStep === 4 && (
+          {(order.status === "Delivering" || order.status === "Delivered") && (
             <TouchableOpacity style={styles.viewMapButton} onPress={handleViewMap}>
               <Ionicons name="map-outline" size={20} color="#fff" />
               <Text style={styles.viewMapButtonText}>Xem Bản Đồ</Text>
@@ -306,20 +409,17 @@ const OrderConfirmedScreen = () => {
           )}
 
           {/* Nút "Hủy" */}
-          {showCancel && (
+          {showCancel && order.status === "Confirmed" && (
             <TouchableOpacity
               style={[
                 styles.cancelButton,
-                currentStep > 1 && styles.cancelButtonDisabled,
               ]}
-              onPress={currentStep === 1 ? handleCancelOrder : null}
-              disabled={currentStep > 1}
+              onPress={handleCancelOrder}
             >
               <Ionicons name="close-circle-outline" size={20} color="#fff" />
               <Text
                 style={[
                   styles.cancelButtonText,
-                  currentStep > 1 && styles.cancelButtonTextDisabled,
                 ]}
               >
                 Hủy
@@ -351,21 +451,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     width: "100%",
   },
-  backButton: {
-    position: "absolute",
-    top: 10, // Điều chỉnh dựa trên SafeArea hoặc platform
-    left: 20,
-    zIndex: 1,
-    backgroundColor: "rgba(255,255,255,0.7)",
-    borderRadius: 20,
-    padding: 5,
-  },
   title: {
     fontSize: 22,
     fontWeight: "700",
     color: "#333333",
     textAlign: "center",
     marginTop: 10,
+    marginBottom: 20,
   },
   statusContainer: {
     flexDirection: "row",
@@ -418,7 +510,7 @@ const styles = StyleSheet.create({
   },
   horizontalLine: {
     position: "absolute",
-    top: 11, // Center vertically with icon
+    top: 11, // Trung tâm theo chiều dọc với icon
     left: "50%",
     right: "-50%",
     height: 2,
@@ -526,20 +618,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  cancelButtonDisabled: {
-    backgroundColor: "#d32f2f",
-    opacity: 0.5, // Giảm độ sáng để biểu thị nút bị vô hiệu hóa
-  },
   cancelButtonText: {
     color: "#ffffff",
     fontSize: 14,
     fontWeight: "600",
     marginLeft: 6,
   },
-  cancelButtonTextDisabled: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
