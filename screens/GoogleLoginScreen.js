@@ -1,4 +1,5 @@
 // screens/GoogleLoginScreen.js
+
 import React, { useState } from "react";
 import {
   View,
@@ -19,19 +20,26 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig"; // Import Firestore
+import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions
 
 const GoogleLoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState(""); // Thêm state cho tên
+  const [phoneNumber, setPhoneNumber] = useState(""); // Thêm state cho số điện thoại
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false); // Trạng thái tải
   const navigation = useNavigation();
 
   const handleAuthentication = async () => {
-    // Kiểm tra email và mật khẩu trước khi bắt đầu
-    if (!email || !password || (!isLogin && !confirmPassword)) {
+    // Kiểm tra email, mật khẩu, tên và số điện thoại trước khi bắt đầu
+    if (
+      !email ||
+      !password ||
+      (!isLogin && (!confirmPassword || !name || !phoneNumber))
+    ) {
       Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin.");
       return;
     }
@@ -40,6 +48,7 @@ const GoogleLoginScreen = () => {
 
     try {
       if (isLogin) {
+        // Đăng nhập
         await signInWithEmailAndPassword(auth, email, password);
         console.log("Đăng nhập thành công!");
         // Reset ngăn xếp điều hướng và thiết lập MainTabs làm màn hình duy nhất
@@ -48,6 +57,7 @@ const GoogleLoginScreen = () => {
           routes: [{ name: "MainTabs" }],
         });
       } else {
+        // Đăng ký
         // Kiểm tra nếu mật khẩu và xác nhận mật khẩu trùng nhau
         if (password !== confirmPassword) {
           Alert.alert("Lỗi", "Mật khẩu và Nhập lại mật khẩu không khớp.");
@@ -56,8 +66,24 @@ const GoogleLoginScreen = () => {
         }
 
         // Đăng ký với Firebase
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
         console.log("Đăng ký thành công!");
+
+        // Tạo tài liệu người dùng trong Firestore với trường image mặc định
+        await setDoc(doc(db, "users", user.uid), {
+          ten: name,
+          sodienthoai: phoneNumber,
+          danhgia: 5, // Giá trị mặc định, bạn có thể thay đổi nếu cần
+          email: email,
+          image: "https://via.placeholder.com/150", // Liên kết hình ảnh mặc định
+        });
+        console.log("Tạo tài liệu người dùng thành công!");
+
         Alert.alert("Thành công", "Đăng ký tài khoản thành công!");
         // Reset ngăn xếp điều hướng và thiết lập MainTabs làm màn hình duy nhất
         navigation.reset({
@@ -68,7 +94,8 @@ const GoogleLoginScreen = () => {
     } catch (error) {
       // Hiển thị thông báo lỗi nếu xác thực thất bại
       Alert.alert("Lỗi", error.message);
-      setIsLoading(false); // Kết thúc tải khi có lỗi
+    } finally {
+      setIsLoading(false); // Kết thúc tải sau khi hoàn thành
     }
   };
 
@@ -94,6 +121,27 @@ const GoogleLoginScreen = () => {
               contentContainerStyle={styles.formContainer}
               keyboardShouldPersistTaps="handled" // Đảm bảo xử lý các lần chạm đúng cách
             >
+              {!isLogin && (
+                <>
+                  <Text style={styles.label}>Tên</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Nhập tên của bạn"
+                    value={name}
+                    onChangeText={setName}
+                  />
+
+                  <Text style={styles.label}>Số điện thoại</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Nhập số điện thoại"
+                    keyboardType="phone-pad"
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                  />
+                </>
+              )}
+
               <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
@@ -133,7 +181,10 @@ const GoogleLoginScreen = () => {
           <View style={styles.bottomContent}>
             {/* Nút xác thực */}
             <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
+              style={[
+                styles.button,
+                isLoading && styles.buttonDisabled,
+              ]}
               onPress={handleAuthentication}
               disabled={isLoading} // Vô hiệu hóa khi đang tải
             >

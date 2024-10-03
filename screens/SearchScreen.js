@@ -1,6 +1,6 @@
 // screens/SearchScreen.js
 import React, { useState, useEffect } from "react";
-import { fetchRestaurants } from '../data/restaurants'; // Import hàm fetchRestaurants thay vì dữ liệu tĩnh
+import { fetchRestaurants } from "../data/restaurants"; // Import hàm fetchRestaurants thay vì dữ liệu tĩnh
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import CustomHeader from "../components/CustomHeader";
+import Diacritics from "diacritics"; // Thư viện giúp xử lý tiếng Việt dễ dàng hơn
 
 const { width } = Dimensions.get("window");
 
@@ -44,12 +45,26 @@ const SearchScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (loading) return; // Nếu đang loading, không thực hiện tìm kiếm
 
-    // Tìm kiếm các nhà hàng có món ăn khớp với từ khóa
-    let results = allRestaurants.filter((restaurant) =>
-      restaurant.dishes.some((dish) =>
-        dish.name.toLowerCase().includes(query.toLowerCase())
-      )
-    );
+    // Chuẩn bị từ khóa tìm kiếm
+    const processedQuery = Diacritics.remove(query.toLowerCase());
+
+    // Tìm kiếm các nhà hàng có tên nhà hàng hoặc món ăn khớp với từ khóa
+    let results = allRestaurants
+      .map((restaurant) => {
+        const restaurantNameProcessed = Diacritics.remove(restaurant.name.toLowerCase());
+        const nameMatch = restaurantNameProcessed.includes(processedQuery);
+
+        const matchedDishes = restaurant.dishes.filter((dish) =>
+          Diacritics.remove(dish.name.toLowerCase()).includes(processedQuery)
+        );
+
+        return {
+          ...restaurant,
+          matchByName: nameMatch,
+          matchedDishes: matchedDishes,
+        };
+      })
+      .filter((restaurant) => restaurant.matchByName || restaurant.matchedDishes.length > 0);
 
     // Áp dụng các bộ lọc nếu có
     if (filterOptions.length > 0) {
@@ -58,14 +73,16 @@ const SearchScreen = ({ route, navigation }) => {
           case "Freeship":
             results = results.filter((restaurant) => restaurant.freeship);
             break;
-          case "Favorite":
+          case "Yêu thích":
             results = results.filter((restaurant) => restaurant.favorite);
             break;
-          case "Near You":
+          case "Gần bạn":
             results = results.filter((restaurant) => restaurant.nearYou);
             break;
-          case "Partner":
-            results = results.filter((restaurant) => restaurant.type === "Partner");
+          case "Đối tác":
+            results = results.filter(
+              (restaurant) => restaurant.type === "Đối tác"
+            );
             break;
           default:
             break;
@@ -76,36 +93,36 @@ const SearchScreen = ({ route, navigation }) => {
     // Áp dụng sort nếu có
     if (sortOption) {
       switch (sortOption) {
-        case "Price: Low to High":
+        case "Giá: Thấp đến Cao":
           results.sort((a, b) => {
             const aPrice = a.dishes.reduce(
-              (sum, dish) => sum + parseFloat(dish.price.replace("$", "")),
+              (sum, dish) => sum + parseFloat(dish.price.replace("$", "").replace(/,/g, "")),
               0
             );
             const bPrice = b.dishes.reduce(
-              (sum, dish) => sum + parseFloat(dish.price.replace("$", "")),
+              (sum, dish) => sum + parseFloat(dish.price.replace("$", "").replace(/,/g, "")),
               0
             );
             return aPrice - bPrice;
           });
           break;
-        case "Price: High to Low":
+        case "Giá: Cao đến Thấp":
           results.sort((a, b) => {
             const aPrice = a.dishes.reduce(
-              (sum, dish) => sum + parseFloat(dish.price.replace("$", "")),
+              (sum, dish) => sum + parseFloat(dish.price.replace("$", "").replace(/,/g, "")),
               0
             );
             const bPrice = b.dishes.reduce(
-              (sum, dish) => sum + parseFloat(dish.price.replace("$", "")),
+              (sum, dish) => sum + parseFloat(dish.price.replace("$", "").replace(/,/g, "")),
               0
             );
             return bPrice - aPrice;
           });
           break;
-        case "Rating":
+        case "Đánh giá":
           results.sort((a, b) => b.rating - a.rating);
           break;
-        case "Delivery Time":
+        case "Thời gian giao hàng":
           results.sort((a, b) => {
             const aTime = parseInt(a.deliveryTime);
             const bTime = parseInt(b.deliveryTime);
@@ -150,16 +167,38 @@ const SearchScreen = ({ route, navigation }) => {
     setItemsToShow((prev) => prev + 6); // Tăng số lượng nhà hàng hiển thị
   };
 
+  // Hàm để định dạng giá tiền
+  const formatPrice = (price) => {
+    const number = parseInt(price.replace("$", "").replace(/,/g, ""));
+    return number.toLocaleString("en-US") + " VND";
+  };
+
   // Hàm render cho mỗi nhà hàng
   const renderRestaurant = ({ item }) => {
-    // Lọc các món ăn phù hợp với từ khóa tìm kiếm
-    const filteredDishes = item.dishes.filter((dish) =>
-      dish.name.toLowerCase().includes(query.toLowerCase())
-    );
+    let dishesToShow = [];
+    let remainingDishesCount = 0;
 
-    // Giới hạn số lượng món ăn hiển thị là 3
-    const dishesToShow = filteredDishes.slice(0, 3);
-    const remainingDishesCount = filteredDishes.length - dishesToShow.length;
+    if (item.matchByName) {
+      // Nếu khớp bằng tên nhà hàng, hiển thị 3 món ăn đầu tiên
+      dishesToShow = item.dishes.slice(0, 3);
+      remainingDishesCount = item.dishes.length - dishesToShow.length;
+    } else if (item.matchedDishes.length > 0) {
+      if (item.matchedDishes.length > 3) {
+        // Nếu có hơn 3 món ăn khớp, chỉ lấy 3 món đầu tiên
+        dishesToShow = item.matchedDishes.slice(0, 3);
+        remainingDishesCount = item.matchedDishes.length - dishesToShow.length;
+      } else {
+        // Nếu có 3 hoặc ít hơn, thêm món ăn bổ sung để đạt 3
+        const additionalDishes = item.dishes.filter(
+          (dish) => !item.matchedDishes.includes(dish)
+        );
+        dishesToShow = [
+          ...item.matchedDishes,
+          ...additionalDishes.slice(0, 3 - item.matchedDishes.length),
+        ];
+        remainingDishesCount = item.dishes.length - dishesToShow.length;
+      }
+    }
 
     return (
       <View style={styles.restaurantContainer}>
@@ -189,7 +228,17 @@ const SearchScreen = ({ route, navigation }) => {
               )}
               {item.nearYou && (
                 <View style={styles.chip}>
-                  <Text style={styles.chipText}>Near You</Text>
+                  <Text style={styles.chipText}>Gần bạn</Text>
+                </View>
+              )}
+              {item.favorite && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Yêu thích</Text>
+                </View>
+              )}
+              {item.partner && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Đối tác</Text>
                 </View>
               )}
             </View>
@@ -215,7 +264,7 @@ const SearchScreen = ({ route, navigation }) => {
                   />
                   <View style={styles.dishInfo}>
                     <Text style={styles.dishName}>{dish.name}</Text>
-                    <Text style={styles.dishPrice}>{dish.price}</Text>
+                    <Text style={styles.dishPrice}>{formatPrice(dish.price)}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -245,7 +294,7 @@ const SearchScreen = ({ route, navigation }) => {
 
     return (
       <TouchableOpacity style={styles.seeMoreButton} onPress={handleSeeMore}>
-        <Text style={styles.seeMoreText}>See more</Text>
+        <Text style={styles.seeMoreText}>Xem thêm</Text>
       </TouchableOpacity>
     );
   };
@@ -255,7 +304,7 @@ const SearchScreen = ({ route, navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#43bed8" />
-        <Text>Loading...</Text>
+        <Text>Đang tải...</Text>
       </View>
     );
   }
@@ -288,7 +337,7 @@ const SearchScreen = ({ route, navigation }) => {
                 sortOption ? { color: "#fff" } : styles.sortByTextDefault,
               ]}
             >
-              Sort by
+              Sắp xếp
             </Text>
             <Ionicons
               name={isSortOptionsVisible ? "chevron-up" : "chevron-down"}
@@ -299,7 +348,7 @@ const SearchScreen = ({ route, navigation }) => {
           </TouchableOpacity>
 
           {/* Các chip khác (Filter Options) */}
-          {["Freeship", "Favorite", "Near You", "Partner"].map((option) => (
+          {["Freeship", "Yêu thích", "Gần bạn", "Đối tác"].map((option) => (
             <TouchableOpacity
               key={option}
               style={[
@@ -324,10 +373,10 @@ const SearchScreen = ({ route, navigation }) => {
         {isSortOptionsVisible && (
           <View style={styles.sortOptionsContainer}>
             {[
-              "Price: Low to High",
-              "Price: High to Low",
-              "Rating",
-              "Delivery Time",
+              "Giá: Thấp đến Cao",
+              "Giá: Cao đến Thấp",
+              "Đánh giá",
+              "Thời gian giao hàng",
             ].map((option) => (
               <TouchableOpacity
                 key={option}
@@ -344,8 +393,7 @@ const SearchScreen = ({ route, navigation }) => {
       {/* Hiển thị số lượng kết quả tìm kiếm */}
       {matchedRestaurants.length > 0 && (
         <Text style={styles.resultsCount}>
-          {matchedRestaurants.length} result
-          {matchedRestaurants.length !== 1 ? "s" : ""} for "{query}"
+          {matchedRestaurants.length} kết quả cho "{query}"
         </Text>
       )}
 
@@ -364,7 +412,7 @@ const SearchScreen = ({ route, navigation }) => {
         <View style={styles.noResultsContainer}>
           <Ionicons name="search-outline" size={64} color="#ccc" />
           <Text style={styles.noResultsText}>
-            Không tìm thấy nhà hàng nào có món ăn "{query}"
+            Không tìm thấy nhà hàng nào có tên hoặc món ăn "{query}"
           </Text>
         </View>
       )}
@@ -376,10 +424,10 @@ export default SearchScreen;
 
 // Định nghĩa màu sắc cho các tùy chọn sort nếu cần
 const sortOptionColors = {
-  "Price: Low to High": "#ff9800",
-  "Price: High to Low": "#f44336",
-  "Rating": "#4caf50",
-  "Delivery Time": "#2196f3",
+  "Giá: Thấp đến Cao": "#ff9800",
+  "Giá: Cao đến Thấp": "#f44336",
+  "Đánh giá": "#4caf50",
+  "Thời gian giao hàng": "#2196f3",
 };
 
 const styles = StyleSheet.create({

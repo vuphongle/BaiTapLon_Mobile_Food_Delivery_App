@@ -1,6 +1,6 @@
 // screens/RestaurantDetailScreen.js
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, Alert } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, Modal, TouchableWithoutFeedback } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { OrderContext } from '../context/OrderContext'; // Import OrderContext
 
@@ -15,6 +15,26 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
 
   const handleAddDish = (dish) => {
     addDishToOrder(dish, restaurant);
+  };
+
+  // State for Modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const openModal = (image) => {
+    setSelectedImage(image);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setSelectedImage(null);
+    setModalVisible(false);
+  };
+
+  // Hàm để định dạng giá tiền
+  const formatPrice = (price) => {
+    const number = parseInt(price.replace(/[^0-9]/g, ''), 10);
+    return number.toLocaleString('en-US') + ' VND';
   };
 
   return (
@@ -40,6 +60,33 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
         </View>
       </View>
 
+      {/* Modal for Enlarged Image */}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeModal}
+      >
+        <TouchableWithoutFeedback onPress={closeModal}>
+          <View style={styles.modalBackground}>
+            <TouchableWithoutFeedback>
+              <View>
+                <TouchableOpacity style={styles.modalCloseButton} onPress={closeModal}>
+                  <Ionicons name="close-circle" size={30} color="#fff" />
+                </TouchableOpacity>
+                {selectedImage && (
+                  <Image
+                    source={{ uri: selectedImage }}
+                    style={styles.enlargedImage}
+                    resizeMode="contain"
+                  />
+                )}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
       {/* Scrollable Content Below the Image */}
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.sectionContainer}>
@@ -50,15 +97,23 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                 .filter(dish => dish.category === category)
                 .map((dish, idx) => (
                   <View key={idx} style={styles.dishContainer}>
-                    <Image
-                      source={{ uri: dish.image || 'https://via.placeholder.com/100' }}
-                      style={styles.dishImage}
-                      resizeMode="cover"
-                    />
+                    <TouchableOpacity onPress={() => openModal(dish.image)}>
+                      <Image
+                        source={{ uri: dish.image || 'https://via.placeholder.com/100' }}
+                        style={styles.dishImage}
+                        resizeMode="cover"
+                      />
+                    </TouchableOpacity>
                     <View style={styles.dishInfoContainer}>
                       <View style={styles.dishInfo}>
-                        <Text style={styles.dishName}>{dish.name}</Text>
-                        <Text style={styles.dishPrice}>{dish.price} VND</Text>
+                        <Text
+                          style={styles.dishName}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {dish.name}
+                        </Text>
+                        <Text style={styles.dishPrice}>{formatPrice(dish.price)}</Text>
                       </View>
                       <View style={styles.dishStats}>
                         <Ionicons name="heart-outline" size={16} color="#e91e63" />
@@ -175,10 +230,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     flexWrap: 'wrap',
+    width: width - 160, // Adjust width to prevent overflow
   },
   dishPrice: {
     fontSize: 14,
-    color: 'black',
+    color: '#e91e63',
     marginTop: 4,
   },
   dishStats: {
@@ -193,5 +249,22 @@ const styles = StyleSheet.create({
   },
   addButton: {
     padding: 4,
+  },
+  // Modal Styles
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  enlargedImage: {
+    width: width * 0.9,
+    height: width * 0.9,
+    borderRadius: 10,
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
   },
 });

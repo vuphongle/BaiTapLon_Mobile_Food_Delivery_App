@@ -9,10 +9,13 @@ import MyOrderScreen from "./screens/MyOrderScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
 import InboxScreen from "./screens/InboxScreen";
 import AccountScreen from "./screens/AccountScreen";
-import HomeStack from "./navigation/HomeStack"; // Import HomeStack
+import OrderConfirmedScreen from "./screens/OrderConfirmedScreen";
+import RatingScreen from "./screens/RatingScreen"; // Import RatingScreen
+import HomeStack from "./navigation/HomeStack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { OrderProvider } from "./context/OrderContext"; // Import OrderProvider
+import { OrderProvider } from "./context/OrderContext";
+import DeliveryMapScreen from "./screens/DeliveryMapScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -55,7 +58,11 @@ const MainTabs = () => {
       })}
     >
       <Tab.Screen name="Home" component={HomeStack} />
-      <Tab.Screen name="MyOrder" component={MyOrderScreen} options={{ title: "My Order" }} />
+      <Tab.Screen
+        name="MyOrder"
+        component={MyOrderScreen}
+        options={{ title: "My Order" }}
+      />
       <Tab.Screen name="Favorites" component={FavoritesScreen} />
       <Tab.Screen name="Inbox" component={InboxScreen} />
       <Tab.Screen name="Account" component={AccountScreen} />
@@ -87,6 +94,21 @@ export default function App() {
             name="MainTabs"
             component={MainTabs}
             options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="OrderConfirmed"
+            component={OrderConfirmedScreen}
+            options={{ headerShown: false }} // Ẩn header
+          />
+          <Stack.Screen
+            name="DeliveryMap"
+            component={DeliveryMapScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Rating"
+            component={RatingScreen}
+            options={{ title: "Đánh Giá Món Ăn", headerShown: false }} 
           />
         </Stack.Navigator>
       </NavigationContainer>

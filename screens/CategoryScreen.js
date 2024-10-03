@@ -1,6 +1,8 @@
 // screens/CategoryScreen.js
+
 import React, { useState, useEffect, useRef } from "react";
 import { fetchRestaurants } from '../data/restaurants'; // Import hàm fetchRestaurants
+import { fetchBanners } from '../data/banners'; // Import hàm fetchBanners
 import {
   View,
   Text,
@@ -17,53 +19,11 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 const { width } = Dimensions.get("window");
 
-// Dữ liệu mẫu cho nhà hàng được đề xuất (giữ nguyên dữ liệu tĩnh)
-const recommendedRestaurants = [
-  {
-    id: "5",
-    type: "restaurant",
-    name: "Sushi World",
-    image: "https://via.placeholder.com/100",
-    deliveryTime: "18 mins",
-    rating: 4.9,
-    freeship: true,
-    nearYou: true,
-    favorite: true,
-    partner: false,
-    dishes: [
-      { name: "California Roll", price: "$8.99" },
-      { name: "Spicy Tuna Roll", price: "$9.99" },
-      { name: "Salmon Nigiri", price: "$7.99" },
-    ],
-  },
-  // Thêm các nhà hàng được đề xuất khác tại đây
-];
-
-// Dữ liệu mẫu cho banner quảng cáo với title (giữ nguyên dữ liệu tĩnh)
-const banners = [
-  {
-    id: "1",
-    image: "https://via.placeholder.com/350x150?text=Banner+1",
-    title: "Tasty Dishes",
-  },
-  {
-    id: "2",
-    image: "https://via.placeholder.com/350x150?text=Banner+2",
-    title: "Special Offers",
-  },
-  {
-    id: "3",
-    image: "https://via.placeholder.com/350x150?text=Banner+3",
-    title: "New Dishes Daily",
-  },
-];
-
-// Ánh xạ các tùy chọn sắp xếp với màu sắc tương ứng
 const sortOptionColors = {
-  "Price: Low to High": "#43bed8",
-  "Price: High to Low": "#43bed8",
-  Rating: "#43bed8",
-  "Delivery Time": "#43bed8",
+  "Giá: Thấp đến Cao": "#43bed8",
+  "Giá: Cao đến Thấp": "#43bed8",
+  "Đánh giá": "#43bed8",
+  "Thời gian giao hàng": "#43bed8",
 };
 
 const CategoryScreen = ({ navigation, route }) => {
@@ -76,6 +36,13 @@ const CategoryScreen = ({ navigation, route }) => {
   const [isSortOptionsVisible, setSortOptionsVisible] = useState(false);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(3); // State để quản lý số lượng nhà hàng hiển thị
+
+  // State và loading cho banners
+  const [banners, setBanners] = useState([]);
+  const [loadingBanners, setLoadingBanners] = useState(true);
+
+  // State cho nhà hàng được đề xuất
+  const [recommendedRestaurant, setRecommendedRestaurant] = useState(null);
 
   const viewabilityConfig = {
     itemVisiblePercentThreshold: 50,
@@ -90,14 +57,36 @@ const CategoryScreen = ({ navigation, route }) => {
 
   // Hàm lấy dữ liệu từ Firestore khi component được mount
   useEffect(() => {
-    const getRestaurants = async () => {
-      const data = await fetchRestaurants();
-      setAllRestaurants(data);
-      setFilteredRestaurants(data); // Khởi tạo filteredRestaurants với tất cả nhà hàng
-      setLoading(false);
+    const getData = async () => {
+      try {
+        // Lấy dữ liệu nhà hàng
+        const restaurantData = await fetchRestaurants();
+        // Lọc nhà hàng theo danh mục
+        const filtered = restaurantData.filter((restaurant) =>
+          restaurant.categories.includes(category)
+        );
+        setAllRestaurants(filtered);
+        setFilteredRestaurants(filtered); // Khởi tạo filteredRestaurants với các nhà hàng thuộc danh mục
+
+        // Lấy dữ liệu banners
+        const bannerData = await fetchBanners();
+        setBanners(bannerData);
+
+        // Chọn ngẫu nhiên một nhà hàng để đề xuất
+        if (filtered.length > 0) {
+          const randomIndex = Math.floor(Math.random() * filtered.length);
+          setRecommendedRestaurant(filtered[randomIndex]);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu:", error);
+        Alert.alert("Lỗi", "Không thể tải dữ liệu. Vui lòng thử lại sau.");
+      } finally {
+        setLoading(false);
+        setLoadingBanners(false);
+      }
     };
-    getRestaurants();
-  }, []);
+    getData();
+  }, [category]);
 
   // Hàm xử lý khi nhấn vào một nhà hàng
   const handleRestaurantPress = (restaurant) => {
@@ -159,17 +148,23 @@ const CategoryScreen = ({ navigation, route }) => {
     // Áp dụng sắp xếp
     if (sortOpt) {
       switch (sortOpt) {
-        case "Price: Low to High":
-          updatedList.sort((a, b) => averagePrice(a.dishes) - averagePrice(b.dishes));
+        case "Giá: Thấp đến Cao":
+          updatedList.sort(
+            (a, b) => averagePrice(a.dishes) - averagePrice(b.dishes)
+          );
           break;
-        case "Price: High to Low":
-          updatedList.sort((a, b) => averagePrice(b.dishes) - averagePrice(a.dishes));
+        case "Giá: Cao đến Thấp":
+          updatedList.sort(
+            (a, b) => averagePrice(b.dishes) - averagePrice(a.dishes)
+          );
           break;
-        case "Rating":
+        case "Đánh giá":
           updatedList.sort((a, b) => b.rating - a.rating);
           break;
-        case "Delivery Time":
-          updatedList.sort((a, b) => parseInt(a.deliveryTime) - parseInt(b.deliveryTime));
+        case "Thời gian giao hàng":
+          updatedList.sort(
+            (a, b) => parseInt(a.deliveryTime) - parseInt(b.deliveryTime)
+          );
           break;
         default:
           break;
@@ -182,7 +177,10 @@ const CategoryScreen = ({ navigation, route }) => {
 
   // Hàm tính giá trung bình của các món ăn trong nhà hàng
   const averagePrice = (dishes) => {
-    const total = dishes.reduce((sum, dish) => sum + parseFloat(dish.price.replace('$', '')), 0);
+    const total = dishes.reduce(
+      (sum, dish) => sum + parseFloat(dish.price.replace('$', '')),
+      0
+    );
     return total / dishes.length;
   };
 
@@ -196,9 +194,6 @@ const CategoryScreen = ({ navigation, route }) => {
 
   // Kiểm tra xem có cần hiển thị nút "See More" không
   const shouldShowSeeMore = visibleCount < filteredRestaurants.length;
-
-  // Giới hạn số lượng nhà hàng được đề xuất hiển thị lên đến 1
-  const displayedRecommended = recommendedRestaurants.slice(0, 1);
 
   // Hàm render từng mục trong FlatList cho Banner
   const renderBannerItem = ({ item }) => (
@@ -221,33 +216,44 @@ const CategoryScreen = ({ navigation, route }) => {
   // Hàm render BannerAd
   const renderBannerAd = () => (
     <View style={styles.bannerContainer}>
-      <FlatList
-        data={banners}
-        keyExtractor={(item) => item.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={width * 0.8 + 15} // Width của mỗi mục + marginRight
-        snapToAlignment="start"
-        decelerationRate="fast"
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        renderItem={renderBannerItem}
-      />
-      {/* Pagination Dots */}
-      <View style={styles.paginationContainer}>
-        {banners.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.paginationDot,
-              index === currentBannerIndex
-                ? styles.paginationDotActive
-                : styles.paginationDotInactive,
-            ]}
+      {loadingBanners ? (
+        <ActivityIndicator size="large" color="#43bed8" />
+      ) : banners.length > 0 ? (
+        <>
+          <FlatList
+            data={banners}
+            keyExtractor={(item) => item.id}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={width * 0.8 + 15} // Width của mỗi mục + marginRight
+            snapToAlignment="start"
+            decelerationRate="fast"
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            renderItem={renderBannerItem}
           />
-        ))}
-      </View>
+          {/* Pagination Dots */}
+          <View style={styles.paginationContainer}>
+            {banners.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.paginationDot,
+                  index === currentBannerIndex
+                    ? styles.paginationDotActive
+                    : styles.paginationDotInactive,
+                ]}
+              />
+            ))}
+          </View>
+        </>
+      ) : (
+        // Hiển thị placeholder nếu không có banners
+        <View style={styles.noBannersContainer}>
+          <Text style={styles.noBannersText}>Không có banner nào</Text>
+        </View>
+      )}
     </View>
   );
 
@@ -258,62 +264,70 @@ const CategoryScreen = ({ navigation, route }) => {
   };
 
   // Hàm render từng mục trong FlatList cho Recommended Restaurants
-  const renderRecommendedItem = ({ item }) => (
+  const renderRecommendedItem = () => (
     <TouchableOpacity
       style={styles.restaurantCard}
       onPress={() => {
-        navigation.navigate('RestaurantDetail', { restaurant: item });
+        if (recommendedRestaurant) {
+          navigation.navigate('RestaurantDetail', { restaurant: recommendedRestaurant });
+        }
       }}
     >
-      <Image source={{ uri: item.image }} style={styles.restaurantImage} />
+      {recommendedRestaurant ? (
+        <>
+          <Image source={{ uri: recommendedRestaurant.image }} style={styles.restaurantImage} />
 
-      <View style={styles.restaurantInfo}>
-        <Text style={styles.restaurantName}>{item.name}</Text>
+          <View style={styles.restaurantInfo}>
+            <Text style={styles.restaurantName}>{recommendedRestaurant.name}</Text>
 
-        <View style={styles.dishesContainer}>
-          {item.dishes.slice(0, 2).map((dish, index) => (
-            <Text key={index} style={styles.dishText}>
-              {dish.name} - {dish.price}
-            </Text>
-          ))}
-          {item.dishes.length > 2 && (
-            <Text style={styles.moreDishesText}>
-              +{item.dishes.length - 2} more
-            </Text>
-          )}
-        </View>
+            <View style={styles.dishesContainer}>
+              {recommendedRestaurant.dishes.slice(0, 2).map((dish, index) => (
+                <Text key={index} style={styles.dishText}>
+                  {dish.name} - {dish.price}
+                </Text>
+              ))}
+              {recommendedRestaurant.dishes.length > 2 && (
+                <Text style={styles.moreDishesText}>
+                  +{recommendedRestaurant.dishes.length - 2} thêm
+                </Text>
+              )}
+            </View>
 
-        <View style={styles.restaurantDetails}>
-          <Text style={styles.restaurantDetailText}>
-            {item.deliveryTime}
-          </Text>
-          <Ionicons name="star" size={16} color="#f1c40f" />
-          <Text style={styles.restaurantDetailText}>{item.rating}</Text>
-        </View>
+            <View style={styles.restaurantDetails}>
+              <Text style={styles.restaurantDetailText}>
+                {recommendedRestaurant.deliveryTime}
+              </Text>
+              <Ionicons name="star" size={16} color="#f1c40f" />
+              <Text style={styles.restaurantDetailText}>{recommendedRestaurant.rating}</Text>
+            </View>
 
-        <View style={styles.chipsContainer}>
-          {item.freeship && (
-            <View style={styles.chip}>
-              <Text style={styles.chipText}>Freeship</Text>
+            <View style={styles.chipsContainer}>
+              {recommendedRestaurant.freeship && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Freeship</Text>
+                </View>
+              )}
+              {recommendedRestaurant.nearYou && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Gần bạn</Text>
+                </View>
+              )}
+              {recommendedRestaurant.favorite && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Yêu thích</Text>
+                </View>
+              )}
+              {recommendedRestaurant.partner && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>Đối tác</Text>
+                </View>
+              )}
             </View>
-          )}
-          {item.nearYou && (
-            <View style={styles.chip}>
-              <Text style={styles.chipText}>Near You</Text>
-            </View>
-          )}
-          {item.favorite && (
-            <View style={styles.chip}>
-              <Text style={styles.chipText}>Favorite</Text>
-            </View>
-          )}
-          {item.partner && (
-            <View style={styles.chip}>
-              <Text style={styles.chipText}>Partner</Text>
-            </View>
-          )}
-        </View>
-      </View>
+          </View>
+        </>
+      ) : (
+        <Text style={styles.noResultsText}>Không có nhà hàng đề xuất.</Text>
+      )}
     </TouchableOpacity>
   );
 
@@ -322,7 +336,7 @@ const CategoryScreen = ({ navigation, route }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#43bed8" />
-        <Text>Loading...</Text>
+        <Text>Đang tải...</Text>
       </View>
     );
   }
@@ -357,7 +371,7 @@ const CategoryScreen = ({ navigation, route }) => {
                 sortOption ? { color: "#fff" } : styles.sortByTextDefault,
               ]}
             >
-              Sort by
+              Sắp xếp
             </Text>
             <Ionicons
               name={isSortOptionsVisible ? "chevron-up" : "chevron-down"}
@@ -383,7 +397,7 @@ const CategoryScreen = ({ navigation, route }) => {
                   filterOptions.includes(option) && styles.sortChipTextSelected,
                 ]}
               >
-                {option}
+                {option === "Near You" ? "Gần bạn" : option === "Freeship" ? "Freeship" : option === "Favorite" ? "Yêu thích" : "Đối tác"}
               </Text>
             </TouchableOpacity>
           ))}
@@ -393,10 +407,10 @@ const CategoryScreen = ({ navigation, route }) => {
         {isSortOptionsVisible && (
           <View style={styles.sortOptionsContainer}>
             {[
-              "Price: Low to High",
-              "Price: High to Low",
-              "Rating",
-              "Delivery Time",
+              "Giá: Thấp đến Cao",
+              "Giá: Cao đến Thấp",
+              "Đánh giá",
+              "Thời gian giao hàng",
             ].map((option) => (
               <TouchableOpacity
                 key={option}
@@ -417,7 +431,9 @@ const CategoryScreen = ({ navigation, route }) => {
       >
         {/* Danh sách nhà hàng */}
         {filteredRestaurants.length === 0 ? (
-          <Text style={styles.noResultsText}>Không tìm thấy nhà hàng nào phù hợp.</Text>
+          <Text style={styles.noResultsText}>
+            Không tìm thấy nhà hàng nào phù hợp.
+          </Text>
         ) : (
           dataToRender.map((item) => {
             return (
@@ -442,7 +458,7 @@ const CategoryScreen = ({ navigation, route }) => {
                     ))}
                     {item.dishes.length > 2 && (
                       <Text style={styles.moreDishesText}>
-                        +{item.dishes.length - 2} more
+                        +{item.dishes.length - 2} thêm
                       </Text>
                     )}
                   </View>
@@ -463,17 +479,17 @@ const CategoryScreen = ({ navigation, route }) => {
                     )}
                     {item.nearYou && (
                       <View style={styles.chip}>
-                        <Text style={styles.chipText}>Near You</Text>
+                        <Text style={styles.chipText}>Gần bạn</Text>
                       </View>
                     )}
                     {item.favorite && (
                       <View style={styles.chip}>
-                        <Text style={styles.chipText}>Favorite</Text>
+                        <Text style={styles.chipText}>Yêu thích</Text>
                       </View>
                     )}
                     {item.partner && (
                       <View style={styles.chip}>
-                        <Text style={styles.chipText}>Partner</Text>
+                        <Text style={styles.chipText}>Đối tác</Text>
                       </View>
                     )}
                   </View>
@@ -489,7 +505,7 @@ const CategoryScreen = ({ navigation, route }) => {
             style={styles.seeMoreButton}
             onPress={handleSeeMorePress}
           >
-            <Text style={styles.seeMoreText}>See More</Text>
+            <Text style={styles.seeMoreText}>Xem thêm</Text>
           </TouchableOpacity>
         )}
 
@@ -499,18 +515,16 @@ const CategoryScreen = ({ navigation, route }) => {
         {/* Mục Recommended for you */}
         <View style={styles.recommendedContainer}>
           <View style={styles.recommendedHeader}>
-            <Text style={styles.recommendedTitle}>Recommended for you</Text>
+            <Text style={styles.recommendedTitle}>Đề xuất cho bạn</Text>
             <TouchableOpacity onPress={handleSeeAllRecommendedPress}>
-              <Text style={styles.recommendedSeeAll}>See All</Text>
+              <Text style={styles.recommendedSeeAll}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
-          <FlatList
-            data={displayedRecommended}
-            keyExtractor={(item) => item.id}
-            renderItem={renderRecommendedItem}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
-          />
+          {recommendedRestaurant ? (
+            renderRecommendedItem()
+          ) : (
+            <Text style={styles.noResultsText}>Không có nhà hàng đề xuất.</Text>
+          )}
         </View>
       </ScrollView>
     </View>

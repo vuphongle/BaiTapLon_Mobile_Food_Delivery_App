@@ -24,11 +24,12 @@ const MyOrderScreen = () => {
     increaseQuantity,
     decreaseQuantity,
     applyDiscount, // Giả sử bạn có hàm applyDiscount trong context
+    deliveryAddress,
+    setDeliveryAddress,
   } = useContext(OrderContext);
   const navigation = useNavigation(); // Sử dụng hook để truy cập navigation
 
-  // State cho địa chỉ giao hàng, mã giảm giá, và phương thức thanh toán
-  const [deliveryAddress, setDeliveryAddress] = useState("");
+  // State cho mã giảm giá và phương thức thanh toán
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [selectedDiscount, setSelectedDiscount] = useState(null);
 
@@ -119,8 +120,8 @@ const MyOrderScreen = () => {
       {
         text: "OK",
         onPress: () => {
-          clearOrder();
-          navigation.navigate("Home");
+          // Không clearOrder ngay, để giữ thông tin đơn hàng trên màn hình OrderConfirmed
+          navigation.navigate("OrderConfirmed"); // Điều hướng đến màn hình mới
         },
       },
     ]);
@@ -177,7 +178,11 @@ const MyOrderScreen = () => {
               onPress={handleNavigateToRestaurant}
             >
               <Ionicons name="restaurant-outline" size={20} color="#fff" />
-              <Text style={[styles.restaurantName, styles.clickableText]}>
+              <Text
+                style={[styles.restaurantName, styles.clickableText]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {myOrder[0].restaurantName}
               </Text>
             </TouchableOpacity>
@@ -257,7 +262,9 @@ const MyOrderScreen = () => {
                 >
                   <Ionicons name="pricetag-outline" size={24} color="#3391a4" />
                   <Text style={styles.optionButtonText}>
-                    {selectedDiscount ? selectedDiscount.code : "Chọn mã giảm giá"}
+                    {selectedDiscount
+                      ? selectedDiscount.code
+                      : "Chọn mã giảm giá"}
                   </Text>
                 </TouchableOpacity>
 
@@ -301,7 +308,7 @@ const MyOrderScreen = () => {
               <Text style={styles.summaryValue}>
                 {selectedDiscount && selectedDiscount.code === "FREESHIP"
                   ? "0 VND"
-                  : formatPrice(calculateShippingFee()) + " VND"} 
+                  : formatPrice(calculateShippingFee()) + " VND"}
               </Text>
             </View>
             {selectedDiscount && selectedDiscount.code !== "FREESHIP" && (
@@ -368,7 +375,6 @@ const MyOrderScreen = () => {
                 <Text style={styles.modalCloseButtonText}>Đóng</Text>
               </TouchableOpacity>
             </View>
-            
           </View>
         </Modal>
 
@@ -452,6 +458,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginLeft: 8,
     color: "#fff",
+    width: "90%",
   },
   clickableText: {
     textDecorationLine: "underline",
@@ -493,7 +500,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
   },
-  optionsContainer: { // Thêm container mới để chứa cả mã giảm giá và phương thức thanh toán
+  optionsContainer: {
+    // Thêm container mới để chứa cả mã giảm giá và phương thức thanh toán
     padding: 16,
     backgroundColor: "#fff",
     borderRadius: 8,
@@ -501,7 +509,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     gap: 16, // Khoảng cách giữa các phần tử bên trong
   },
-  optionButton: { // Thay đổi từ discountButton và paymentButton thành optionButton
+  optionButton: {
+    // Thay đổi từ discountButton và paymentButton thành optionButton
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
