@@ -42,7 +42,7 @@ const OrderConfirmedScreen = () => {
         const fetchedDriverInfo = {
           id: "driver123",
           name: "Nguyễn Văn A",
-          image: "https://via.placeholder.com/100",
+          image: "https://firebasestorage.googleapis.com/v0/b/fooddeliverypt-191e4.appspot.com/o/Users%2Favtdefault.png?alt=media&token=d22b7ad6-2dee-4305-891f-7a9d89c5d60f",
           licensePlate: "29A-12345",
           phoneNumber: "0987654321",
           location: {
