@@ -26,6 +26,7 @@ const OrderConfirmedScreen = () => {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // Thêm trạng thái lỗi
 
   const [currentStep, setCurrentStep] = useState(1); // Bắt đầu từ bước 1 - Xác nhận đơn hàng
   const [showCancel, setShowCancel] = useState(true); // Quản lý hiển thị nút "Hủy"
@@ -54,18 +55,19 @@ const OrderConfirmedScreen = () => {
               setOrder(orderData);
               // Cập nhật currentStep dựa trên order.status
               updateCurrentStep(orderData.status);
+              setError(null); // Reset lỗi nếu có
             } else {
-              Alert.alert("Lỗi", "Không tìm thấy đơn hàng.");
+              setError("Không tìm thấy đơn hàng.");
               navigation.goBack();
             }
           });
         } else {
-          Alert.alert("Lỗi", "Không tìm thấy đơn hàng để hiển thị.");
+          setError("Không tìm thấy đơn hàng để hiển thị.");
           navigation.goBack();
         }
       } catch (error) {
         console.error("Lỗi khi lấy thông tin đơn hàng:", error);
-        Alert.alert("Lỗi", "Có lỗi xảy ra khi lấy thông tin đơn hàng.");
+        setError("Có lỗi xảy ra khi lấy thông tin đơn hàng.");
         navigation.goBack();
       } finally {
         setLoading(false);
@@ -186,7 +188,7 @@ const OrderConfirmedScreen = () => {
       case 3:
         return 15000; // 15 giây
       case 4:
-        return 20000; // 200 giây (3 phút 20 giây)
+        return 20000; // 20 giây
       default:
         return 5000;
     }
@@ -350,11 +352,21 @@ const OrderConfirmedScreen = () => {
     );
   }
 
+  if (error) { // Kiểm tra trạng thái lỗi
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <Text>{error}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (!order) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-          <Text>Không tìm thấy đơn hàng.</Text>
+          <Text>Đang lấy thông tin đơn hàng.</Text>
         </View>
       </SafeAreaView>
     );
