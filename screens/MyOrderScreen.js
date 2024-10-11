@@ -449,6 +449,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 16,
     paddingBottom: 16,
+    marginTop: -48, // Overlap with SafeAreaView padding
   },
   title: {
     fontSize: 26,
