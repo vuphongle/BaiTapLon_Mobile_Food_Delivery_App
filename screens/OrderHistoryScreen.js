@@ -32,6 +32,8 @@ const OrderHistoryScreen = () => {
             id: doc.id,
             ...doc.data(),
           }));
+          // Sort orders by orderDate descending
+          ordersData.sort((a, b) => b.orderDate.seconds - a.orderDate.seconds);
           setOrders(ordersData);
         } else {
           Alert.alert("Lỗi", "Không tìm thấy người dùng đăng nhập.");
@@ -53,20 +55,37 @@ const OrderHistoryScreen = () => {
       onPress={() => navigation.navigate("OrderConfirmed", { orderId: item.id })}
     >
       <View style={styles.orderHeader}>
-        <Text style={styles.orderId}>Mã đơn hàng: {item.id}</Text>
+        <Text style={styles.orderId}>Mã: {shortenOrderId(item.id)}</Text>
         <Text style={styles.orderDate}>
           {item.orderDate
-            ? new Date(item.orderDate.seconds * 1000).toLocaleDateString()
+            ? new Date(item.orderDate.seconds * 1000).toLocaleString("vi-VN")
             : "Không xác định"}
         </Text>
       </View>
       <Text style={styles.orderTotal}>Tổng tiền: {formatPrice(item.totalAmount)} VND</Text>
-      <Text style={styles.orderStatus}>Trạng thái: {item.status}</Text>
+      <Text style={styles.orderStatus}>Trạng thái: {translateStatus(item.status)}</Text>
     </TouchableOpacity>
   );
 
+  const shortenOrderId = (id) => {
+    if (id.length <= 10) return id;
+    return `${id.substring(0, 6)}...${id.substring(id.length - 4)}`;
+  };
+
   const formatPrice = (price) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  const translateStatus = (status) => {
+    const statusMap = {
+      Confirmed: "Đã xác nhận",
+      DriverAssigned: "Đã giao cho tài xế",
+      Preparing: "Đang chuẩn bị",
+      Delivering: "Đang giao hàng",
+      Delivered: "Đã giao",
+      Cancelled: "Đã hủy",
+    };
+    return statusMap[status] || "Không xác định";
   };
 
   if (loading) {

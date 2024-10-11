@@ -1,4 +1,5 @@
 // screens/OrderConfirmedScreen.js
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -9,7 +10,6 @@ import {
   Alert,
   Dimensions,
   ScrollView,
-  Image,
   ActivityIndicator,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -39,7 +39,8 @@ const OrderConfirmedScreen = () => {
   // Thông tin nhà hàng và giao hàng
   const restaurantName = restaurant ? restaurant.name : "Không xác định";
   const deliveryTime = order?.deliveryTime || "Không xác định";
-  const deliveryAddressFinal = order?.deliveryAddress || (restaurant && restaurant.address) || "Không xác định";
+  const deliveryAddressFinal =
+    order?.deliveryAddress || (restaurant && restaurant.address) || "Không xác định";
 
   useEffect(() => {
     let unsubscribe;
@@ -60,17 +61,23 @@ const OrderConfirmedScreen = () => {
               setError("Không tìm thấy đơn hàng.");
               navigation.goBack();
             }
+            setLoading(false); // Di chuyển setLoading(false) vào callback
+          }, (err) => {
+            console.error("Lỗi khi lắng nghe đơn hàng:", err);
+            setError("Có lỗi xảy ra khi lấy thông tin đơn hàng.");
+            setLoading(false);
+            navigation.goBack();
           });
         } else {
           setError("Không tìm thấy đơn hàng để hiển thị.");
+          setLoading(false);
           navigation.goBack();
         }
       } catch (error) {
         console.error("Lỗi khi lấy thông tin đơn hàng:", error);
         setError("Có lỗi xảy ra khi lấy thông tin đơn hàng.");
-        navigation.goBack();
-      } finally {
         setLoading(false);
+        navigation.goBack();
       }
     };
 
@@ -323,8 +330,7 @@ const OrderConfirmedScreen = () => {
 
   const handleViewMap = () => {
     if (!driverInfo) {
-      // Alert.alert("Thông tin tài xế", "Chưa có thông tin tài xế để hiển thị bản đồ.");
-      // return;
+      //xử lý sau nếu thêm thông tin tài xế
     }
     // Khi điều hướng đến DeliveryMap, truyền các thông tin cần thiết bao gồm driverInfo
     navigation.navigate("DeliveryMap", {
@@ -352,21 +358,11 @@ const OrderConfirmedScreen = () => {
     );
   }
 
-  if (error) { // Kiểm tra trạng thái lỗi
+  if (error) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
           <Text>{error}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!order) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
-          <Text>Đang lấy thông tin đơn hàng.</Text>
         </View>
       </SafeAreaView>
     );
@@ -423,19 +419,11 @@ const OrderConfirmedScreen = () => {
           {/* Nút "Hủy" */}
           {showCancel && order.status === "Confirmed" && (
             <TouchableOpacity
-              style={[
-                styles.cancelButton,
-              ]}
+              style={styles.cancelButton}
               onPress={handleCancelOrder}
             >
               <Ionicons name="close-circle-outline" size={20} color="#fff" />
-              <Text
-                style={[
-                  styles.cancelButtonText,
-                ]}
-              >
-                Hủy
-              </Text>
+              <Text style={styles.cancelButtonText}>Hủy</Text>
             </TouchableOpacity>
           )}
         </View>
