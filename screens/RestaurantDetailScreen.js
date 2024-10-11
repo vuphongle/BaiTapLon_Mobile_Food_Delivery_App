@@ -17,18 +17,32 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
     addDishToOrder(dish, restaurant);
   };
 
-  // State for Modal
+  // State for Enlarged Image Modal
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  const openModal = (image) => {
+  const openImageModal = (image) => {
     setSelectedImage(image);
     setModalVisible(true);
   };
 
-  const closeModal = () => {
+  const closeImageModal = () => {
     setSelectedImage(null);
     setModalVisible(false);
+  };
+
+  // State for Detail Modal
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedDish, setSelectedDish] = useState(null);
+
+  const openDetailModal = (dish) => {
+    setSelectedDish(dish);
+    setDetailModalVisible(true);
+  };
+
+  const closeDetailModal = () => {
+    setSelectedDish(null);
+    setDetailModalVisible(false);
   };
 
   // Hàm để định dạng giá tiền
@@ -65,13 +79,13 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
         visible={modalVisible}
         transparent={true}
         animationType="fade"
-        onRequestClose={closeModal}
+        onRequestClose={closeImageModal}
       >
-        <TouchableWithoutFeedback onPress={closeModal}>
+        <TouchableWithoutFeedback onPress={closeImageModal}>
           <View style={styles.modalBackground}>
             <TouchableWithoutFeedback>
               <View>
-                <TouchableOpacity style={styles.modalCloseButton} onPress={closeModal}>
+                <TouchableOpacity style={styles.modalCloseButton} onPress={closeImageModal}>
                   <Ionicons name="close-circle" size={30} color="#fff" />
                 </TouchableOpacity>
                 {selectedImage && (
@@ -80,6 +94,57 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                     style={styles.enlargedImage}
                     resizeMode="contain"
                   />
+                )}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      {/* Modal for Dish Details */}
+      <Modal
+        visible={detailModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={closeDetailModal}
+      >
+        <TouchableWithoutFeedback onPress={closeDetailModal}>
+          <View style={styles.detailModalBackground}>
+            <TouchableWithoutFeedback>
+              <View style={styles.detailModalContainer}>
+                <TouchableOpacity style={styles.detailModalCloseButton} onPress={closeDetailModal}>
+                  <Ionicons name="close-circle" size={30} color="#fff" />
+                </TouchableOpacity>
+                {selectedDish && (
+                  <>
+                    <Image
+                      source={{ uri: selectedDish.image }}
+                      style={styles.detailDishImage}
+                      resizeMode="cover"
+                    />
+                    <Text style={styles.detailDishName}>{selectedDish.name}</Text>
+                    <Text style={styles.detailDishPrice}>{formatPrice(selectedDish.price)}</Text>
+                    <Text style={styles.detailDishDescription}>{selectedDish.detail}</Text>
+                    <View style={styles.detailDishStats}>
+                      <View style={styles.statItem}>
+                        <Ionicons name="heart-outline" size={20} color="#e91e63" />
+                        <Text style={styles.statText}>{selectedDish.likes} Likes</Text>
+                      </View>
+                      <View style={styles.statItem}>
+                        <Ionicons name="cart-outline" size={20} color="#43bed8" />
+                        <Text style={styles.statText}>{selectedDish.sales} Sold</Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.addToOrderButton}
+                      onPress={() => {
+                        handleAddDish(selectedDish);
+                        closeDetailModal();
+                      }}
+                    >
+                      <Text style={styles.addToOrderButtonText}>Thêm vào giỏ</Text>
+                    </TouchableOpacity>
+                  </>
                 )}
               </View>
             </TouchableWithoutFeedback>
@@ -97,7 +162,7 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                 .filter(dish => dish.category === category)
                 .map((dish, idx) => (
                   <View key={idx} style={styles.dishContainer}>
-                    <TouchableOpacity onPress={() => openModal(dish.image)}>
+                    <TouchableOpacity onPress={() => openImageModal(dish.image)}>
                       <Image
                         source={{ uri: dish.image || 'https://via.placeholder.com/100' }}
                         style={styles.dishImage}
@@ -105,7 +170,7 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                       />
                     </TouchableOpacity>
                     <View style={styles.dishInfoContainer}>
-                      <View style={styles.dishInfo}>
+                      <TouchableOpacity onPress={() => openDetailModal(dish)}>
                         <Text
                           style={styles.dishName}
                           numberOfLines={1}
@@ -113,8 +178,8 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                         >
                           {dish.name}
                         </Text>
-                        <Text style={styles.dishPrice}>{formatPrice(dish.price)}</Text>
-                      </View>
+                      </TouchableOpacity>
+                      <Text style={styles.dishPrice}>{formatPrice(dish.price)}</Text>
                       <View style={styles.dishStats}>
                         <Ionicons name="heart-outline" size={16} color="#e91e63" />
                         <Text style={styles.statText}>{dish.likes}</Text>
@@ -221,10 +286,6 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     justifyContent: 'center',
   },
-  dishInfo: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
   dishName: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -250,7 +311,7 @@ const styles = StyleSheet.create({
   addButton: {
     padding: 4,
   },
-  // Modal Styles
+  // Modal Styles for Enlarged Image
   modalBackground: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.8)',
@@ -266,5 +327,70 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 40,
     right: 20,
+  },
+  // Styles for Detail Modal
+  detailModalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  detailModalContainer: {
+    width: width * 0.9,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 16,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  detailModalCloseButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  detailDishImage: {
+    width: width * 0.8,
+    height: width * 0.5,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  detailDishName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  detailDishPrice: {
+    fontSize: 18,
+    color: '#e91e63',
+    marginBottom: 8,
+  },
+  detailDishDescription: {
+    fontSize: 16,
+    color: '#555',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  detailDishStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 16,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addToOrderButton: {
+    backgroundColor: '#43bed8',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  addToOrderButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

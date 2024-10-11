@@ -1,6 +1,5 @@
 // screens/DeliveryMapScreen.js
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { 
   View, 
   StyleSheet, 
@@ -37,17 +36,19 @@ const DeliveryMapScreen = () => {
     longitude: 106.687154, // Kinh độ địa chỉ người nhận
   });
 
-  const driver = driverInfo || {
-    id: "driver123",
-    image: "https://via.placeholder.com/100",
-    name: "Nguyễn Văn A",
-    licensePlate: "29A-12345",
-    phoneNumber: "0987654321",
-    location: {
-      latitude: 10.825931,
-      longitude: 106.683839,
-    },
-  };
+  const driver = useMemo(() => {
+    return driverInfo || {
+      id: "driver123",
+      image: "https://via.placeholder.com/100",
+      name: "Nguyễn Văn A",
+      licensePlate: "29A-12345",
+      phoneNumber: "0987654321",
+      location: {
+        latitude: 10.825931,
+        longitude: 106.683839,
+      },
+    };
+  }, [driverInfo]);
 
   useEffect(() => {
     const fetchDriverLocation = () => {
@@ -134,68 +135,70 @@ const DeliveryMapScreen = () => {
       </MapView>
 
       {/* Thông tin bổ sung bên dưới bản đồ */}
-      <ScrollView contentContainerStyle={styles.infoContainer}>
-        {/* Thông tin nhà hàng */}
-        {restaurantName && (
-          <View style={[styles.infoSection, {alignItems: 'center'}]}>
-            <Text style={[styles.infoText, {fontSize: 20, fontWeight: 'bold'}]}>{restaurantName}</Text>
-          </View>
-        )}
+      <View style={styles.infoContainer}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Thông tin nhà hàng */}
+          {restaurantName && (
+            <View style={[styles.infoSection, styles.centeredContent]}>
+              <Text style={[styles.infoText, styles.restaurantNameText]}>{restaurantName}</Text>
+            </View>
+          )}
 
-        {/* Thời gian giao hàng */}
-        {deliveryTime && (
-          <View style={styles.infoSection}>
-            <View style={styles.infoRow}>
-              <Ionicons name="time-outline" size={20} color="#2196f3" style={[styles.infoIcon, {marginTop: 0}]} />
-              <View>
-                <Text style={styles.infoTitle}>Thời gian giao hàng:</Text>
-                <Text style={styles.infoText}>{deliveryTime}</Text>
+          {/* Thời gian giao hàng */}
+          {deliveryTime && (
+            <View style={styles.infoSection}>
+              <View style={styles.infoRow}>
+                <Ionicons name="time-outline" size={20} color="#2196f3" style={styles.infoIcon} />
+                <View>
+                  <Text style={styles.infoTitle}>Thời gian giao hàng:</Text>
+                  <Text style={styles.infoText}>{deliveryTime}</Text>
+                </View>
               </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {/* Địa chỉ giao hàng */}
-        {deliveryAddress && (
-          <View style={styles.infoSection}>
-            <View style={styles.infoRow}>
-              <Ionicons name="location-outline" size={20} color="#2196f3" style={[styles.infoIcon, {marginTop: 0}]} />
-              <View>
-                <Text style={styles.infoTitle}>Địa chỉ giao hàng:</Text>
-                <Text style={styles.infoText}>{deliveryAddress}</Text>
+          {/* Địa chỉ giao hàng */}
+          {deliveryAddress && (
+            <View style={styles.infoSection}>
+              <View style={styles.infoRow}>
+                <Ionicons name="location-outline" size={20} color="#2196f3" style={styles.infoIcon} />
+                <View>
+                  <Text style={styles.infoTitle}>Địa chỉ giao hàng:</Text>
+                  <Text style={styles.infoText}>{deliveryAddress}</Text>
+                </View>
               </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {/* Thông tin tài xế */}
-        {driver && (
-          <View style={styles.driverSection}>
-            <View style={styles.separator} />
+          {/* Thông tin tài xế */}
+          {driver && (
+            <View style={styles.driverSection}>
+              <View style={styles.separator} />
 
-            <View style={styles.driverInfo}>
-              <Image 
-                source={{ uri: driver.image }} 
-                style={styles.driverImage} 
-              />
-              <View style={styles.driverDetails}>
-                <Text style={styles.driverName}>{driver.name}</Text>
-                <Text style={styles.driverDetailText}>Biển số xe: {driver.licensePlate}</Text>
-                <Text style={styles.driverDetailText}>Số điện thoại: {driver.phoneNumber}</Text>
-              </View>
-              {/* Thêm các icon gọi điện và chat ở bên phải */}
-              <View style={styles.iconContainer}>
-                <TouchableOpacity style={styles.iconButton} onPress={handleCallPress}>
-                  <Ionicons name="call" size={24} color="#2196f3" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButton} onPress={handleChatPress}>
-                  <Ionicons name="chatbubbles" size={24} color="#2196f3" />
-                </TouchableOpacity>
+              <View style={styles.driverInfo}>
+                <Image 
+                  source={{ uri: driver.image }} 
+                  style={styles.driverImage} 
+                />
+                <View style={styles.driverDetails}>
+                  <Text style={styles.driverName}>{driver.name}</Text>
+                  <Text style={styles.driverDetailText}>Biển số xe: {driver.licensePlate}</Text>
+                  <Text style={styles.driverDetailText}>Số điện thoại: {driver.phoneNumber}</Text>
+                </View>
+                {/* Thêm các icon gọi điện và chat ở bên phải */}
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity style={styles.iconButton} onPress={handleCallPress}>
+                    <Ionicons name="call" size={24} color="#2196f3" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.iconButton} onPress={handleChatPress}>
+                    <Ionicons name="chatbubbles" size={24} color="#2196f3" />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        </ScrollView>
+      </View>
     </View>
   );
 };
@@ -216,8 +219,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   map: {
-    width: width,
-    height: height * 0.6,
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -225,14 +227,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   infoContainer: {
-    padding: 16,
     backgroundColor: "#ffffff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    position: 'absolute',
-    bottom: 0,
     width: width,
+    // Set a fixed height or maxHeight to ensure it doesn't overlap
     maxHeight: height * 0.4,
+    padding: 16,
+  },
+  scrollContent: {
+    paddingBottom: 16,
   },
   infoSection: {
     marginBottom: 12,
@@ -296,5 +300,12 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     marginLeft: 16,
+  },
+  centeredContent: {
+    alignItems: 'center',
+  },
+  restaurantNameText: {
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });

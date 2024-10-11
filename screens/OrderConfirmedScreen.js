@@ -321,8 +321,8 @@ const OrderConfirmedScreen = () => {
 
   const handleViewMap = () => {
     if (!driverInfo) {
-      Alert.alert("Thông tin tài xế", "Chưa có thông tin tài xế để hiển thị bản đồ.");
-      return;
+      // Alert.alert("Thông tin tài xế", "Chưa có thông tin tài xế để hiển thị bản đồ.");
+      // return;
     }
     // Khi điều hướng đến DeliveryMap, truyền các thông tin cần thiết bao gồm driverInfo
     navigation.navigate("DeliveryMap", {
